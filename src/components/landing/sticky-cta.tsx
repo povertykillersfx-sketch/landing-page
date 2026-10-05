@@ -29,7 +29,7 @@ export function StickyCta() {
   if (!visible) return null;
   return (
     <div className="sticky-cta">
-      <CtaLink location="sticky" className="btn btn-primary btn-block" />
+      <CtaLink location="sticky" className="btn btn-go" />
     </div>
   );
 }

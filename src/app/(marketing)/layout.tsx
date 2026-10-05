@@ -9,11 +9,11 @@ export const runtime = "nodejs";
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const config = getPublicConfig();
   return (
-    <>
+    <div className="funnel">
       <AnalyticsScripts gaId={config.gaMeasurementId} pixelId={config.metaPixelId} />
       <SiteHeader logoUrl={config.logoUrl} />
       {children}
       <SiteFooter config={config} />
-    </>
+    </div>
   );
 }

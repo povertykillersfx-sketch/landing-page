@@ -1,8 +1,7 @@
 import { BRAND_NAME, META_DESCRIPTION } from "@/config/content";
 import { TrackView } from "@/components/analytics/track-view";
-import { FinalCta, FeaturesSection, Hero, ProblemSection, TestimonialsSection, TrustSection } from "@/components/landing/sections";
+import { LandingPage } from "@/components/landing/landing-page";
 import { StickyCta } from "@/components/landing/sticky-cta";
-import { VslSection } from "@/components/landing/vsl";
 import { getPublicConfig } from "@/lib/public-config";
 
 export const dynamic = "force-dynamic";
@@ -25,13 +24,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <TrackView event="landing_page_view" />
-      <Hero />
-      <VslSection videoUrl={config.vslVideoUrl} />
-      <ProblemSection />
-      <FeaturesSection />
-      <TestimonialsSection />
-      <TrustSection />
-      <FinalCta />
+      <LandingPage videoUrl={config.vslVideoUrl} />
       <StickyCta />
     </>
   );
