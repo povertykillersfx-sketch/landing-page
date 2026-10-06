@@ -11,6 +11,18 @@ export const META_DESCRIPTION =
 export const DISCLAIMER =
   "Trading involves risk and may not be suitable for everyone. The information provided by PKFX is for educational and informational purposes and should not be considered financial advice. Past performance does not guarantee future results.";
 
+export const TERMS_URL = "https://povertykillersfx.com";
+
+export const RESERVE = {
+  title: "Reserve My Spot",
+  kicker: "Takes less than 30 seconds. Do not miss out.",
+  timerLabel: "Spot reserved for",
+  submit: "Claim My Spot Now",
+  submitting: "Reserving your spot…",
+  consent:
+    "I understand that forex trading involves significant risk. By submitting, I also agree to the Terms and Conditions of Poverty Killers FX (Pty) Ltd, including group chat guidelines and consent for marketing communications as per POPIA regulations.",
+};
+
 export const HERO = {
   eyebrow: "Financial education and technology",
   headlineLead: "Learn Trading Using AI for",

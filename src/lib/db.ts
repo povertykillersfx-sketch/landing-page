@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS leads (
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT NOT NULL,
+  whatsapp TEXT NOT NULL DEFAULT '',
   country TEXT NOT NULL,
   trading_experience TEXT NOT NULL,
   previously_purchased INTEGER NOT NULL,
@@ -60,6 +61,10 @@ function openDatabase() {
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
   db.exec(SCHEMA);
+  const columns = db.pragma("table_info(leads)") as { name: string }[];
+  if (!columns.some((column) => column.name === "whatsapp")) {
+    db.exec("ALTER TABLE leads ADD COLUMN whatsapp TEXT NOT NULL DEFAULT ''");
+  }
   return db;
 }
 

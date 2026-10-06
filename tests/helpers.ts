@@ -23,6 +23,7 @@ export const sampleLead = {
   fullName: "Ada Lovelace",
   email: "ada@example.com",
   phone: "+14155552671",
+  whatsapp: "+14155552671",
   country: "United States",
   tradingExperience: "1–2 years",
   previouslyPurchased: true,

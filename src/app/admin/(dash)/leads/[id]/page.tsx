@@ -36,6 +36,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             <div><dt>Full name</dt><dd>{lead.fullName}</dd></div>
             <div><dt>Email</dt><dd><a href={`mailto:${lead.email}`}>{lead.email}</a></dd></div>
             <div><dt>Phone</dt><dd><a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a></dd></div>
+            {lead.whatsapp ? <div><dt>WhatsApp</dt><dd><a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, "")}`}>{formatPhone(lead.whatsapp)}</a></dd></div> : null}
             <div><dt>Country</dt><dd>{lead.country}</dd></div>
           </dl>
           <h2 style={{ marginTop: "1.4rem" }}>Trading Profile</h2>

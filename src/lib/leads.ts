@@ -9,6 +9,7 @@ export type Lead = {
   fullName: string;
   email: string;
   phone: string;
+  whatsapp: string;
   country: string;
   tradingExperience: string;
   previouslyPurchased: boolean;
@@ -27,6 +28,7 @@ type LeadRow = {
   full_name: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   country: string;
   trading_experience: string;
   previously_purchased: number;
@@ -86,6 +88,7 @@ function mapLead(row: LeadRow): Lead {
     fullName: row.full_name,
     email: row.email,
     phone: row.phone,
+    whatsapp: row.whatsapp || "",
     country: row.country,
     tradingExperience: row.trading_experience,
     previouslyPurchased: row.previously_purchased === 1,
@@ -106,14 +109,15 @@ export function createLead(input: LeadPayload, now = new Date()): Lead {
   const timestamp = now.toISOString();
   db.prepare(
     `INSERT INTO leads (
-      id, full_name, email, phone, country, trading_experience, previously_purchased,
+      id, full_name, email, phone, whatsapp, country, trading_experience, previously_purchased,
       previous_products, deposit_range, deposit_rank, status, notes, call_booked_at, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', '', NULL, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', '', NULL, ?, ?)`,
   ).run(
     id,
     input.fullName,
     input.email,
     input.phone,
+    input.whatsapp,
     input.country,
     input.tradingExperience,
     input.previouslyPurchased ? 1 : 0,
@@ -205,8 +209,8 @@ function whereClause(query: LeadQuery, timeZone: string) {
   const params: Array<string | number> = [];
   if (query.q) {
     const term = `%${escapeLike(query.q)}%`;
-    where.push("(full_name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\')");
-    params.push(term, term, term);
+    where.push("(full_name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR whatsapp LIKE ? ESCAPE '\\')");
+    params.push(term, term, term, term);
   }
   if (query.country) {
     where.push("country = ?");

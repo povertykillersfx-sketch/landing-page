@@ -7,6 +7,7 @@ export type LeadPayload = {
   fullName: string;
   email: string;
   phone: string;
+  whatsapp: string;
   country: string;
   tradingExperience: string;
   previouslyPurchased: boolean;
@@ -26,19 +27,25 @@ export function sanitizeText(input: string, max: number, options?: { singleLine?
   return value.trim().slice(0, max);
 }
 
-export function normalizePhone(phoneCountry: string, nationalNumber: string): string | null {
-  const raw = nationalNumber.trim();
-  if (!raw || !phoneCountry) return null;
-  const iso = phoneCountry.toUpperCase() as CountryCode;
+export function parseE164(raw: string, defaultCountry?: string): string | null {
+  const value = raw.trim();
+  if (!value) return null;
+  const iso = defaultCountry?.toUpperCase() as CountryCode | undefined;
   try {
-    const phone = raw.startsWith("+")
-      ? parsePhoneNumberFromString(raw)
-      : parsePhoneNumberFromString(raw, iso);
+    const phone = value.startsWith("+")
+      ? parsePhoneNumberFromString(value)
+      : iso
+        ? parsePhoneNumberFromString(value, iso)
+        : parsePhoneNumberFromString(value);
     if (!phone?.isValid()) return null;
     return phone.number;
   } catch {
     return null;
   }
+}
+
+export function normalizePhone(phoneCountry: string, nationalNumber: string): string | null {
+  return parseE164(nationalNumber, phoneCountry);
 }
 
 export function formatPhone(phone: string): string {
@@ -55,14 +62,23 @@ function asString(value: unknown): string {
 }
 
 export function validateAboutYou(
-  input: { fullName?: unknown; email?: unknown; phone?: unknown; country?: unknown },
+  input: {
+    fullName?: unknown;
+    email?: unknown;
+    phone?: unknown;
+    whatsapp?: unknown;
+    country?: unknown;
+    phoneCountry?: unknown;
+  },
   countries: CountryName[],
 ): FieldErrors {
   const errors: FieldErrors = {};
   const fullName = sanitizeText(asString(input.fullName), 100, { singleLine: true });
   const email = asString(input.email).trim().toLowerCase();
-  const phone = asString(input.phone).trim();
   const country = asString(input.country).trim();
+  const isoHint = asString(input.phoneCountry);
+  const phone = parseE164(asString(input.phone), isoHint);
+  const whatsapp = parseE164(asString(input.whatsapp), isoHint);
 
   if (fullName.length < 2 || !/[\p{L}]/u.test(fullName)) {
     errors.fullName = "Enter your full name.";
@@ -70,8 +86,11 @@ export function validateAboutYou(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     errors.email = "Enter a valid email address.";
   }
-  if (!/^\+[1-9]\d{6,14}$/.test(phone) || !parsePhoneNumberFromString(phone)?.isValid()) {
+  if (!phone) {
     errors.phone = "Enter a valid phone number, including your country code.";
+  }
+  if (!whatsapp) {
+    errors.whatsapp = "Enter a valid WhatsApp number, including your country code.";
   }
   if (!country || !countries.some((item) => item.name === country)) {
     errors.country = "Select your country.";
@@ -126,15 +145,20 @@ export function validateLead(input: unknown, countries: CountryName[]): { ok: tr
   const experience = validateExperience(source);
   const capital = validateCapital(source);
   const errors = { ...aboutErrors, ...experience.errors, ...capital.errors };
+  if (source.consent !== true) {
+    errors.consent = "Confirm the risk notice and terms to continue.";
+  }
   if (Object.keys(errors).length || !experience.value || !capital.value) {
     return { ok: false, errors };
   }
+  const isoHint = asString(source.phoneCountry);
   return {
     ok: true,
     value: {
       fullName: sanitizeText(asString(source.fullName), 100, { singleLine: true }),
       email: asString(source.email).trim().toLowerCase(),
-      phone: asString(source.phone).trim(),
+      phone: parseE164(asString(source.phone), isoHint) || "",
+      whatsapp: parseE164(asString(source.whatsapp), isoHint) || "",
       country: asString(source.country).trim(),
       ...experience.value,
       ...capital.value,

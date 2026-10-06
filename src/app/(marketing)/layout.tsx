@@ -1,6 +1,8 @@
 import { AnalyticsScripts } from "@/components/analytics/scripts";
+import { ReserveProvider } from "@/components/form/reserve-provider";
 import { SiteFooter } from "@/components/landing/footer";
 import { SiteHeader } from "@/components/landing/header";
+import { getCountryOptions } from "@/lib/countries";
 import { getPublicConfig } from "@/lib/public-config";
 
 export const dynamic = "force-dynamic";
@@ -11,9 +13,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className="funnel">
       <AnalyticsScripts gaId={config.gaMeasurementId} pixelId={config.metaPixelId} />
-      <SiteHeader logoUrl={config.logoUrl} />
-      {children}
-      <SiteFooter config={config} />
+      <ReserveProvider countries={getCountryOptions()}>
+        <SiteHeader logoUrl={config.logoUrl} />
+        {children}
+        <SiteFooter config={config} />
+      </ReserveProvider>
     </div>
   );
 }

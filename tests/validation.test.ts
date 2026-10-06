@@ -8,11 +8,13 @@ const valid = {
   fullName: "Ada Lovelace",
   email: "Ada@Example.com",
   phone: "+14155552671",
+  whatsapp: "+14155552671",
   country: "United States",
   tradingExperience: "1–2 years",
   previouslyPurchased: true,
   previousProducts: ["Trading course", "<script>alert(1)</script>"],
   depositRange: "$1,000–$4,999",
+  consent: true,
 };
 
 describe("lead validation", () => {
@@ -22,6 +24,7 @@ describe("lead validation", () => {
     if (!result.ok) return;
     expect(result.value.email).toBe("ada@example.com");
     expect(result.value.previousProducts).toEqual(["Trading course"]);
+    expect(result.value.whatsapp).toBe("+14155552671");
     expect(result.value.depositRank).toBe(4);
   });
 
@@ -36,6 +39,14 @@ describe("lead validation", () => {
     expect(result.errors.tradingExperience).toBeTruthy();
     expect(result.errors.previouslyPurchased).toBeTruthy();
     expect(result.errors.depositRange).toBeTruthy();
+  });
+
+  it("requires consent and a WhatsApp number", () => {
+    const result = validateLead({ ...valid, consent: false, whatsapp: "" }, countries);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.consent).toBeTruthy();
+    expect(result.errors.whatsapp).toBeTruthy();
   });
 
   it("drops products when the lead has not purchased before", () => {
