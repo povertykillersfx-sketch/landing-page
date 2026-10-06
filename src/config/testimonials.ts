@@ -6,37 +6,46 @@ export type Testimonial = {
   screenshot: string;
 };
 
-/**
- * Sample testimonials for layout preview only.
- * They are not real customer reviews.
- * Replace the entries below, then set testimonialsArePlaceholders to false
- * before publishing real quotes.
- */
-export const testimonialsArePlaceholders = true;
+export const testimonialsArePlaceholders = false;
+
+export const resultsHeading = "Student / Member Results";
+export const resultsNote =
+  "Screenshots shared by PKFX members. Individual results vary. Trading involves risk and past results do not guarantee future results.";
 
 export const testimonials: Testimonial[] = [
   {
-    name: "Sample Trader A",
-    role: "Placeholder — replace in config",
+    name: "PKFX member",
+    role: "Market scanner",
     image: "",
-    testimonial:
-      "This is sample copy for layout preview only. Replace it with a real testimonial before publishing.",
-    screenshot: "",
+    testimonial: "Started using the market scanner on Friday, the results are crazy",
+    screenshot: "/results/member-scanner-friday.jpg",
   },
   {
-    name: "Sample Trader B",
-    role: "Placeholder — replace in config",
+    name: "PKFX member",
+    role: "Market scanner",
     image: "",
-    testimonial:
-      "Sample quote about the education and community. This person is not a real PKFX member.",
-    screenshot: "",
+    testimonial: "The market scanner is too much",
+    screenshot: "/results/member-scanner-too-much.jpg",
   },
   {
-    name: "Sample Trader C",
-    role: "Placeholder — replace in config",
+    name: "PKFX member",
+    role: "First day with the scanner",
     image: "",
-    testimonial:
-      "Sample quote about using a clearer process. Do not present this as a genuine review.",
-    screenshot: "",
+    testimonial: "First day having access to the AI market scanner. Managed to secure £30",
+    screenshot: "/results/member-first-day.jpg",
+  },
+  {
+    name: "Kelvin",
+    role: "PKFX member",
+    image: "",
+    testimonial: "I was scalping gold using the market scanner. Made $186 profits",
+    screenshot: "/results/member-kelvin-gold.jpg",
+  },
+  {
+    name: "Ahmed G",
+    role: "PKFX member",
+    image: "",
+    testimonial: "Ever since I started using the Market Scanner, trading has become so much easier",
+    screenshot: "/results/member-ahmed-scanner.jpg",
   },
 ];

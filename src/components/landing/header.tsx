@@ -19,7 +19,7 @@ export function SiteHeader({ logoUrl }: { logoUrl: string }) {
           <>
             <nav className="nav-links" aria-label="Page">
               <a href="#offer">What’s included</a>
-              <a href="#testimonials">Testimonials</a>
+              <a href="#testimonials">Results</a>
             </nav>
             <button
               type="button"
@@ -42,7 +42,7 @@ export function SiteHeader({ logoUrl }: { logoUrl: string }) {
       {onHome && open ? (
         <div className="lp-menu-panel">
           <a href="#offer" onClick={() => setOpen(false)}>What’s included</a>
-          <a href="#testimonials" onClick={() => setOpen(false)}>Testimonials</a>
+          <a href="#testimonials" onClick={() => setOpen(false)}>Results</a>
         </div>
       ) : null}
     </header>

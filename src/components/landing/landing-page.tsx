@@ -1,8 +1,8 @@
 import { HERO, PRIMARY_CTA } from "@/config/content";
 import { CtaLink } from "@/components/landing/cta-link";
 import { OfferAccordion } from "@/components/landing/offer-accordion";
+import { MemberResults } from "@/components/landing/member-results";
 import { SocialProof } from "@/components/landing/social-proof";
-import { TestimonialsButton } from "@/components/landing/testimonials-button";
 import { VslPlayer } from "@/components/landing/vsl";
 
 const FLOATS = ["💰", "📉", "📈", "💸", "💵", "💹", "🏦", "💶"];
@@ -44,9 +44,7 @@ export function LandingPage({ videoUrl }: { videoUrl: string }) {
       </CtaLink>
       <p className="lp-note">{HERO.applicationNote}</p>
       <OfferAccordion />
-      <div className="lp-testi" id="testimonials">
-        <TestimonialsButton />
-      </div>
+      <MemberResults />
       <SocialProof />
     </div>
   );
