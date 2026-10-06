@@ -8,7 +8,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: 
 const sora = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-sora", display: "swap" });
 
 export const viewport: Viewport = {
-  themeColor: "#07090e",
+  themeColor: "#0a0515",
   width: "device-width",
   initialScale: 1,
 };

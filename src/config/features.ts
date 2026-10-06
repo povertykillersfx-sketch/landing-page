@@ -18,13 +18,13 @@ export const features: Feature[] = [
   {
     title: "Education Content",
     description:
-      "Get access to the PKFX trading course. Learn market basics, how the scanner is used, risk management, and trading psychology. Built for beginners and for traders who want a clearer process.",
+      "Get access to our comprehensive A-Z trading course. Learn everything from market basics to advanced institutional concepts, proper risk management, and trading psychology. Perfect for both beginners and experienced traders looking to refine their edge.",
     icon: "course",
   },
   {
     title: "Live Trading Sessions",
     description:
-      "Follow live market analysis and see how a trading process is applied in real time.",
+      "Watch over our shoulders as we analyze the charts, execute trades, and manage positions in real-time. We host live sessions during the most volatile market hours (London and New York sessions) so you can learn exactly how we navigate live market conditions.",
     icon: "live",
   },
   {
@@ -35,17 +35,20 @@ export const features: Feature[] = [
   },
   {
     title: "Community of Traders",
-    description: "Learn with other traders inside the PKFX community and stay with one process long enough to evaluate it.",
+    description:
+      "Join a global network of like-minded traders. Share your setups, ask questions, and learn together in a supportive environment focused on process and consistency.",
     icon: "community",
   },
   {
     title: "No Experience Required",
-    description: "The course starts from the basics, so you can begin without a trading background.",
+    description:
+      "Whether you've never opened a chart or you've been trading for years, our system meets you where you are.",
     icon: "updates",
   },
   {
     title: "Live Support",
-    description: "Get help while you learn the tools, the course, and the process.",
+    description:
+      "Get help from real traders in our Telegram community whenever you need it. Ask questions, share ideas, and never trade alone.",
     icon: "risk",
   },
 ];

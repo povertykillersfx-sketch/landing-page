@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CtaLink } from "@/components/landing/cta-link";
+import { PRIMARY_CTA } from "@/config/content";
 
 export function StickyCta() {
   const [visible, setVisible] = useState(false);
@@ -29,7 +30,9 @@ export function StickyCta() {
   if (!visible) return null;
   return (
     <div className="sticky-cta">
-      <CtaLink location="sticky" className="btn btn-go" />
+      <CtaLink location="sticky" className="btn btn-spot">
+        {PRIMARY_CTA}
+      </CtaLink>
     </div>
   );
 }

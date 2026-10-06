@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { PRIMARY_CTA } from "@/config/content";
 import { track } from "@/lib/analytics-client";
@@ -13,7 +14,7 @@ export function CtaLink({
   location: string;
   className?: string;
   id?: string;
-  children?: string;
+  children?: ReactNode;
 }) {
   return (
     <Link

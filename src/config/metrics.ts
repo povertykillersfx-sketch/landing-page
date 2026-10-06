@@ -10,10 +10,12 @@ export type Metric = {
  */
 export const socialProof = {
   heading: "Built For Traders Who Want To Take Their Trading Seriously",
-  supporting:
-    "PKFX is built for people who want tools, education and a community around a trading process. Update the figures below when you are ready to publish them.",
+  supporting: "Trusted by hundreds of global traders",
+  ratingLabel: "Average Rate",
+  rating: "4.92",
+  communityCount: "800+",
   metrics: [
-    { id: "community", label: "Community Members", value: "" },
+    { id: "community", label: "Community Members", value: "800+" },
     { id: "sessions", label: "Live Sessions", value: "" },
     { id: "resources", label: "Educational Resources", value: "" },
     { id: "traders", label: "Traders Using PKFX", value: "" },
