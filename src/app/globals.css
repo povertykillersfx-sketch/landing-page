@@ -658,9 +658,17 @@ td a { color: var(--ice); }
 .lp-testi { margin: 2.2rem 0 0; }
 .lp-results {
   margin: 3.2rem auto 0;
-  max-width: 860px;
+  max-width: 920px;
   text-align: center;
   scroll-margin-top: 80px;
+}
+.lp-results-kicker {
+  margin: 0 0 0.45rem;
+  color: #c4b5fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 .lp-results h2 {
   margin: 0 0 0.55rem;
@@ -668,50 +676,52 @@ td a { color: var(--ice); }
   letter-spacing: -0.03em;
 }
 .lp-results-note {
-  margin: 0 auto 1.2rem;
+  margin: 0 auto 1.35rem;
   max-width: 36rem;
   color: rgba(255, 255, 255, 0.58);
   font-size: 0.88rem;
   line-height: 1.5;
 }
-.results-track {
-  display: flex;
-  gap: 0.9rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 0.2rem 0.15rem 0.8rem;
-  scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
+.results-wall {
+  columns: 1;
+  column-gap: 1rem;
+  text-align: left;
 }
 .result-card {
-  scroll-snap-align: start;
-  flex: 0 0 min(78%, 320px);
-  text-align: left;
+  break-inside: avoid;
+  margin: 0 0 1.15rem;
   display: grid;
   gap: 0.7rem;
 }
 .result-shot {
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   overflow: hidden;
   background: #090414;
   cursor: zoom-in;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 .result-shot img {
   width: 100%;
+  height: auto;
   display: block;
   background: #090414;
 }
 .result-card p {
-  margin: 0;
+  margin: 0 0.15rem 0.2rem;
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.95rem;
   line-height: 1.45;
 }
 .result-card strong { display: block; color: white; margin-bottom: 0.2rem; }
-.results-nav { justify-content: center; }
-.lp-results .btn-spot { margin-top: 1.4rem; }
+.result-card q {
+  quotes: "“" "”";
+  font-style: italic;
+}
+.lp-results .btn-spot { margin-top: 0.6rem; }
 .btn-ghost-spot {
   min-height: 56px;
   padding: 0.85rem 1.6rem;
@@ -868,7 +878,7 @@ td a { color: var(--ice); }
   .lp-menu, .lp-menu-panel { display: none; }
   .lp-proof { flex-direction: row; padding: 1rem 1.4rem; }
   .reserve-grid { grid-template-columns: 1fr 1fr; }
-  .result-card { flex-basis: min(46%, 360px); }
+  .results-wall { columns: 2; }
 }
 @media (min-width: 980px) {
   .sticky-cta { display: none; }

@@ -6,35 +6,17 @@ import { CtaLink } from "@/components/landing/cta-link";
 import { PRIMARY_CTA } from "@/config/content";
 
 export function MemberResults() {
-  const scroller = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [shot, setShot] = useState<{ src: string; alt: string } | null>(null);
 
-  function scrollByCard(direction: number) {
-    const node = scroller.current;
-    if (!node) return;
-    const card = node.querySelector("article");
-    const amount = (card?.getBoundingClientRect().width || 280) + 14;
-    node.scrollBy({ left: amount * direction, behavior: "smooth" });
-  }
-
   return (
     <section className="lp-results" id="testimonials" aria-labelledby="results-heading">
+      <p className="lp-results-kicker">From the community</p>
       <h2 id="results-heading">{resultsHeading}</h2>
       <p className="lp-results-note">{resultsNote}</p>
-      <div
-        ref={scroller}
-        className="results-track"
-        tabIndex={0}
-        role="region"
-        aria-label="Member result screenshots"
-        onKeyDown={(event) => {
-          if (event.key === "ArrowRight") scrollByCard(1);
-          if (event.key === "ArrowLeft") scrollByCard(-1);
-        }}
-      >
+      <div className="results-wall" role="list">
         {testimonials.map((item) => (
-          <article className="result-card" key={`${item.name}-${item.screenshot}`}>
+          <article className="result-card" key={`${item.name}-${item.screenshot}`} role="listitem">
             <button
               type="button"
               className="result-shot"
@@ -43,25 +25,15 @@ export function MemberResults() {
                 dialog.current?.showModal();
               }}
             >
-              <img src={item.screenshot} alt="" loading="lazy" decoding="async" />
+              <img src={item.screenshot} alt={`${item.name}: ${item.testimonial}`} loading="lazy" decoding="async" />
             </button>
             <p>
               <strong>{item.name}</strong>
-              {item.testimonial}
+              <q>{item.testimonial}</q>
             </p>
           </article>
         ))}
       </div>
-      {testimonials.length > 1 ? (
-        <div className="carousel-nav results-nav">
-          <button type="button" className="btn btn-ghost" onClick={() => scrollByCard(-1)} aria-label="Previous results">
-            Previous
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => scrollByCard(1)} aria-label="Next results">
-            Next
-          </button>
-        </div>
-      ) : null}
       <CtaLink location="results" className="btn btn-spot">
         {PRIMARY_CTA}
       </CtaLink>
