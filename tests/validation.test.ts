@@ -41,12 +41,14 @@ describe("lead validation", () => {
     expect(result.errors.depositRange).toBeTruthy();
   });
 
-  it("requires consent and a WhatsApp number", () => {
-    const result = validateLead({ ...valid, consent: false, whatsapp: "" }, countries);
+  it("requires consent and allows an empty WhatsApp number", () => {
+    const withoutWhatsapp = validateLead({ ...valid, whatsapp: "" }, countries);
+    expect(withoutWhatsapp.ok).toBe(true);
+    if (withoutWhatsapp.ok) expect(withoutWhatsapp.value.whatsapp).toBe("");
+    const result = validateLead({ ...valid, consent: false }, countries);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.errors.consent).toBeTruthy();
-    expect(result.errors.whatsapp).toBeTruthy();
   });
 
   it("drops products when the lead has not purchased before", () => {

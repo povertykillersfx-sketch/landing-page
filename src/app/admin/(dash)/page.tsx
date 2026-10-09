@@ -2,10 +2,10 @@ import Link from "next/link";
 import { depositOptions, experienceOptions } from "@/config/form-options";
 import { LEAD_STATUSES } from "@/config/statuses";
 import { StatusSelect } from "@/components/admin/status-select";
-import { leadFiltersActive, leadStats, listLeadFacets, parseLeadQuery, queryLeads, type LeadQuery } from "@/lib/leads";
+import { leadFiltersActive, leadStats, listLeadFacets, parseLeadQuery, queryLeads, type Lead, type LeadQuery } from "@/lib/leads";
 import { getPublicConfig } from "@/lib/public-config";
 import { formatDateTime, safeTimeZone } from "@/lib/time";
-import { formatPhone, whatsappHref } from "@/lib/validation";
+import { formatPhone } from "@/lib/validation";
 
 export const metadata = { title: "Leads" };
 export const dynamic = "force-dynamic";
@@ -29,6 +29,11 @@ function queryString(query: LeadQuery, page?: number) {
     if (value) params.set(key, value);
   }
   return params.toString();
+}
+
+function purchaseLabel(lead: Lead) {
+  if (!lead.previouslyPurchased) return "No";
+  return lead.previousProducts.length ? `Yes · ${lead.previousProducts.join(", ")}` : "Yes";
 }
 
 export default async function AdminHome({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -159,14 +164,9 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                 </header>
                 <a href={`mailto:${lead.email}`}>{lead.email}</a>
                 <div><a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a></div>
-                {lead.whatsapp ? (
-                  <div>
-                    <a href={whatsappHref(lead.whatsapp)} target="_blank" rel="noopener noreferrer">
-                      WhatsApp {formatPhone(lead.whatsapp)}
-                    </a>
-                  </div>
-                ) : null}
                 <div>{lead.country} · {lead.tradingExperience}</div>
+                <div>{purchaseLabel(lead)}</div>
+                <div>{lead.depositRange}</div>
                 <Link className="btn btn-ghost" href={`/admin/leads/${lead.id}`}>View</Link>
               </article>
             ))}
@@ -178,9 +178,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
-                  <th>WhatsApp</th>
                   <th>Country</th>
                   <th>Experience</th>
+                  <th>Previous purchase</th>
+                  <th>Min deposit</th>
                   <th>Submitted</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -192,15 +193,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                     <td>{lead.fullName}</td>
                     <td><a href={`mailto:${lead.email}`}>{lead.email}</a></td>
                     <td><a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a></td>
-                    <td>
-                      {lead.whatsapp ? (
-                        <a href={whatsappHref(lead.whatsapp)} target="_blank" rel="noopener noreferrer">
-                          {formatPhone(lead.whatsapp)}
-                        </a>
-                      ) : "—"}
-                    </td>
                     <td>{lead.country}</td>
                     <td>{lead.tradingExperience}</td>
+                    <td>{purchaseLabel(lead)}</td>
+                    <td>{lead.depositRange}</td>
                     <td>{formatDateTime(lead.createdAt, timeZone)}</td>
                     <td><StatusSelect id={lead.id} status={lead.status} /></td>
                     <td><Link href={`/admin/leads/${lead.id}`}>Open</Link></td>

@@ -83,7 +83,8 @@ export function validateAboutYou(
   const country = asString(input.country).trim();
   const isoHint = asString(input.phoneCountry);
   const phone = parseE164(asString(input.phone), isoHint);
-  const whatsapp = parseE164(asString(input.whatsapp), isoHint);
+  const whatsappRaw = asString(input.whatsapp).trim();
+  const whatsapp = whatsappRaw ? parseE164(whatsappRaw, isoHint) : "";
 
   if (fullName.length < 2 || !/[\p{L}]/u.test(fullName)) {
     errors.fullName = "Enter your full name.";
@@ -94,7 +95,7 @@ export function validateAboutYou(
   if (!phone) {
     errors.phone = "Enter a valid phone number, including your country code.";
   }
-  if (!whatsapp) {
+  if (whatsappRaw && !whatsapp) {
     errors.whatsapp = "Enter a valid WhatsApp number, including your country code.";
   }
   if (!country || !countries.some((item) => item.name === country)) {

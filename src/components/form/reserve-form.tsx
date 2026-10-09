@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { experienceOptions } from "@/config/form-options";
+import { depositOptions, experienceOptions, previousProductOptions } from "@/config/form-options";
 import { RESERVE, TERMS_URL } from "@/config/content";
 import type { CountryOption } from "@/lib/countries";
 import { track, trackOnce } from "@/lib/analytics-client";
@@ -11,10 +11,12 @@ import { parseE164, validateLead } from "@/lib/validation";
 type FormState = {
   fullName: string;
   email: string;
-  whatsapp: string;
   phone: string;
   country: string;
   tradingExperience: string;
+  previouslyPurchased: "" | "yes" | "no";
+  previousProducts: string[];
+  depositRange: string;
   consent: boolean;
   companyWebsite: string;
 };
@@ -22,10 +24,12 @@ type FormState = {
 const initial: FormState = {
   fullName: "",
   email: "",
-  whatsapp: "",
   phone: "",
   country: "",
   tradingExperience: "",
+  previouslyPurchased: "",
+  previousProducts: [],
+  depositRange: "",
   consent: false,
   companyWebsite: "",
 };
@@ -91,13 +95,13 @@ export function ReserveForm({
       fullName: state.fullName,
       email: state.email,
       phone: parseE164(state.phone, iso) || state.phone,
-      whatsapp: parseE164(state.whatsapp, iso) || state.whatsapp,
+      whatsapp: "",
       phoneCountry: iso,
       country: state.country,
       tradingExperience: state.tradingExperience,
-      previouslyPurchased: false,
-      previousProducts: [] as string[],
-      depositRange: "Prefer not to say",
+      previouslyPurchased: state.previouslyPurchased === "" ? undefined : state.previouslyPurchased === "yes",
+      previousProducts: state.previousProducts,
+      depositRange: state.depositRange,
       consent: state.consent,
     };
     const checked = validateLead(draft, countries);
@@ -188,24 +192,8 @@ export function ReserveForm({
           />
           {errors.email ? <p className="field-error">{errors.email}</p> : null}
         </label>
-        <label className="field" htmlFor="whatsapp">
-          <span>WhatsApp number</span>
-          <input
-            id="whatsapp"
-            className="input"
-            name="whatsapp"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder={`${selected?.dial || "+27"} (WhatsApp)`}
-            value={state.whatsapp}
-            aria-invalid={Boolean(errors.whatsapp)}
-            onChange={(event) => update("whatsapp", event.target.value)}
-          />
-          {errors.whatsapp ? <p className="field-error">{errors.whatsapp}</p> : null}
-        </label>
         <label className="field" htmlFor="phone">
-          <span>Phone number (calls/SMS)</span>
+          <span>Phone number</span>
           <input
             id="phone"
             className="input"
@@ -213,7 +201,7 @@ export function ReserveForm({
             type="tel"
             inputMode="tel"
             autoComplete="tel"
-            placeholder={`${selected?.dial || "+27"} (Direct)`}
+            placeholder={`${selected?.dial || "+27"}`}
             value={state.phone}
             aria-invalid={Boolean(errors.phone)}
             onChange={(event) => update("phone", event.target.value)}
@@ -258,6 +246,73 @@ export function ReserveForm({
             ))}
           </select>
           {errors.tradingExperience ? <p className="field-error">{errors.tradingExperience}</p> : null}
+        </label>
+        <label className="field" htmlFor="previouslyPurchased">
+          <span>Bought a course, EA, or paid signals?</span>
+          <select
+            id="previouslyPurchased"
+            className="input"
+            name="purchased"
+            value={state.previouslyPurchased}
+            aria-invalid={Boolean(errors.previouslyPurchased)}
+            onChange={(event) => {
+              const value = event.target.value === "yes" || event.target.value === "no" ? event.target.value : "";
+              setState((current) => ({
+                ...current,
+                previouslyPurchased: value,
+                previousProducts: value === "yes" ? current.previousProducts : [],
+              }));
+              setErrors((current) => ({ ...current, previouslyPurchased: "" }));
+            }}
+          >
+            <option value="">Select...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+          {errors.previouslyPurchased ? <p className="field-error">{errors.previouslyPurchased}</p> : null}
+        </label>
+        {state.previouslyPurchased === "yes" ? (
+          <fieldset className="field reserve-span">
+            <legend>What did you buy?</legend>
+            <div className="reserve-picks">
+              {previousProductOptions.map((option) => (
+                <label className="reserve-pick" key={option}>
+                  <input
+                    type="checkbox"
+                    checked={state.previousProducts.includes(option)}
+                    onChange={(event) => {
+                      update(
+                        "previousProducts",
+                        event.target.checked
+                          ? [...state.previousProducts, option]
+                          : state.previousProducts.filter((item) => item !== option),
+                      );
+                    }}
+                  />
+                  <span>{option}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
+        <label className="field" htmlFor="depositRange">
+          <span>Typical minimum deposit</span>
+          <select
+            id="depositRange"
+            className="input"
+            name="deposit"
+            value={state.depositRange}
+            aria-invalid={Boolean(errors.depositRange)}
+            onChange={(event) => update("depositRange", event.target.value)}
+          >
+            <option value="">Select...</option>
+            {depositOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.value}
+              </option>
+            ))}
+          </select>
+          {errors.depositRange ? <p className="field-error">{errors.depositRange}</p> : null}
         </label>
       </div>
       <label className="reserve-consent">
