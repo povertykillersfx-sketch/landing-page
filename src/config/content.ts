@@ -25,7 +25,7 @@ export const RESERVE = {
 
 export const HERO = {
   eyebrow: "Financial education and technology",
-  headlineLead: "Get My AI Market Scanner +",
+  headlineLead: "Get My AI Market Scanner",
   headlineAccent: "Free Trading Course",
   supporting:
     "Discover a smarter way to approach the markets with the right tools, education and community.",

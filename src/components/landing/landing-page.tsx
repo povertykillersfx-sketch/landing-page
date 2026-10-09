@@ -37,7 +37,7 @@ export function LandingPage({ videoUrl }: { videoUrl: string }) {
       <h1>
         {HERO.headlineLead}
         <br />
-        <span className="accent">{HERO.headlineAccent}</span>
+        <span className="accent">+ {HERO.headlineAccent}</span>
       </h1>
       <p className="lp-sub">{HERO.supporting}</p>
       <VslPlayer videoUrl={videoUrl} />
