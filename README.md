@@ -57,6 +57,8 @@ This app is at the **repository root**. `package.json`, `package-lock.json`, and
 
 Do not put secrets in git. After the first deploy, point `SITE_URL` at your real domain.
 
+The reserve form also needs `SUPABASE_URL` and `SUPABASE_ANON_KEY` on Netlify. Admin login can succeed without them; form submit cannot. After adding variables, trigger a new deploy.
+
 `ADMIN_EMAIL` must match a confirmed Supabase Auth user with `ADMIN_PASSWORD`, and that email must be in `public.admin_emails`. You can run [`supabase/ensure-admin.sql`](supabase/ensure-admin.sql) in the SQL editor.
 
 ## Configuration

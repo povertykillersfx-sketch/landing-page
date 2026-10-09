@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if ((process.env.SESSION_SECRET || "").length < 32) {
+    if ((process.env.SESSION_SECRET || "").trim().length < 32) {
       console.error("SESSION_SECRET is not configured.");
       return NextResponse.json(
         { ok: false, errors: { form: "The application form is temporarily unavailable." } },
@@ -49,10 +49,13 @@ export async function POST(request: Request) {
     if (error instanceof RequestError) {
       return NextResponse.json({ ok: false, errors: { form: error.message } }, { status: error.status });
     }
-    console.error(error instanceof Error ? error.message : "Lead submission failed");
-    return NextResponse.json(
-      { ok: false, errors: { form: "Something went wrong. Please try again." } },
-      { status: 500 },
-    );
+    const raw = error instanceof Error ? error.message : "Lead submission failed";
+    console.error(raw);
+    const form = /SESSION_SECRET/i.test(raw)
+      ? "The application form is temporarily unavailable."
+      : /SQLite|SUPABASE|schema\.sql/i.test(raw)
+        ? "Lead storage is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in Netlify, then redeploy."
+        : "Something went wrong. Please try again.";
+    return NextResponse.json({ ok: false, errors: { form } }, { status: 500 });
   }
 }

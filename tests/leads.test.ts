@@ -84,6 +84,14 @@ describe("leads database", () => {
     expect(formatSupabaseError({ message: "permission denied" }, "fail")).toBe("permission denied");
   });
 
+  it("does not fall back to SQLite on Netlify without Supabase", async () => {
+    process.env.NETLIFY = "true";
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_ANON_KEY;
+    await expect(createLead(sampleLead)).rejects.toThrow(/SUPABASE_URL/);
+    delete process.env.NETLIFY;
+  });
+
   it("rate limits and stores only known analytics events", async () => {
     expect(await consumeRateLimit("lead:test", 2, 60_000)).toBe(true);
     expect(await consumeRateLimit("lead:test", 2, 60_000)).toBe(true);

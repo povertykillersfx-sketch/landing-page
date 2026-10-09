@@ -1,6 +1,6 @@
 import "server-only";
 import { getDb } from "@/lib/db";
-import { formatSupabaseError, getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { formatSupabaseError, getSupabase, supabaseConfiguredSafe } from "@/lib/supabase";
 
 const memoryStore = globalThis as unknown as {
   __pkfxRateLimits?: Map<string, { count: number; windowStart: number }>;
@@ -25,11 +25,7 @@ export function consumeMemoryRateLimit(key: string, limit: number, windowMs: num
 }
 
 function supabaseReady() {
-  try {
-    return isSupabaseConfigured();
-  } catch {
-    return false;
-  }
+  return supabaseConfiguredSafe();
 }
 
 function consumeSqliteRateLimit(key: string, limit: number, windowMs: number): boolean {

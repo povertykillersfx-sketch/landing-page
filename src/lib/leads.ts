@@ -1,7 +1,7 @@
 import "server-only";
 import { LEAD_STATUSES, isLeadStatus, type LeadStatus } from "@/config/statuses";
 import { getDb } from "@/lib/db";
-import { formatSupabaseError, getSupabase, getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { formatSupabaseError, getSupabase, getSupabaseAdmin, isServerlessHost, isSupabaseConfigured, supabaseConfiguredSafe } from "@/lib/supabase";
 import { addCalendarDays, isIsoDate, periodStarts, safeTimeZone, zonedMidnightUtc } from "@/lib/time";
 import { sanitizeText, type LeadPayload } from "@/lib/validation";
 
@@ -127,7 +127,7 @@ function throwIfError(error: { message?: string; code?: string } | null, fallbac
 export async function createLead(input: LeadPayload, now = new Date()): Promise<Lead> {
   const id = crypto.randomUUID();
   const timestamp = now.toISOString();
-  if (isSupabaseConfigured()) {
+  if (supabaseConfiguredSafe()) {
     const { error } = await getSupabase().from("leads").insert({
       id,
       full_name: input.fullName,
@@ -166,6 +166,9 @@ export async function createLead(input: LeadPayload, now = new Date()): Promise<
       createdAt: timestamp,
       updatedAt: timestamp,
     };
+  }
+  if (isServerlessHost()) {
+    throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY in Netlify, then redeploy.");
   }
   getDb()
     .prepare(

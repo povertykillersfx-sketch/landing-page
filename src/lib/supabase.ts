@@ -38,6 +38,23 @@ function assertHttpsUrl(url: string) {
   throw new Error("SUPABASE_URL must be an https origin.");
 }
 
+export function isServerlessHost() {
+  return Boolean(
+    process.env.NETLIFY ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.LAMBDA_TASK_ROOT ||
+      process.env.VERCEL,
+  );
+}
+
+export function supabaseConfiguredSafe() {
+  try {
+    return isSupabaseConfigured();
+  } catch {
+    return false;
+  }
+}
+
 export function isSupabaseConfigured() {
   const url = supabaseUrl();
   const key = supabaseAnonKey();
