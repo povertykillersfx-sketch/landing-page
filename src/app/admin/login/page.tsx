@@ -1,12 +1,16 @@
+import { redirect } from "next/navigation";
 import { BRAND_SHORT } from "@/config/content";
 import { LoginForm } from "@/components/admin/login-form";
 import { Logo } from "@/components/landing/logo";
+import { getAdminSession } from "@/lib/admin";
 import { getPublicConfig } from "@/lib/public-config";
 import { safeInternalPath } from "@/lib/urls";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  if (await getAdminSession()) redirect("/admin");
   const params = await searchParams;
   const config = getPublicConfig();
   return (

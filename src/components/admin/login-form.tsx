@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { safeInternalPath } from "@/lib/urls";
 
 export function LoginForm({ nextPath }: { nextPath: string }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,6 +16,7 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, next: nextPath }),
       });
@@ -26,8 +26,7 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
         setPending(false);
         return;
       }
-      router.replace(body.redirectTo || "/admin");
-      router.refresh();
+      window.location.assign(safeInternalPath(body.redirectTo || "/admin"));
     } catch {
       setError("We couldn’t sign you in. Check your connection and try again.");
       setPending(false);
