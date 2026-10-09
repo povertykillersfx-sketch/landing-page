@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { CountryOption } from "@/lib/countries";
 import { ReserveForm } from "@/components/form/reserve-form";
 
@@ -24,9 +25,13 @@ export function ReserveProvider({
   countries: CountryOption[];
   children: ReactNode;
 }) {
+  const pathname = usePathname();
   const [opened, setOpened] = useState(false);
   const open = useCallback(() => setOpened(true), []);
   const close = useCallback(() => setOpened(false), []);
+  useEffect(() => {
+    if (pathname === "/book-call") setOpened(false);
+  }, [pathname]);
   const value = useMemo(() => ({ open, close, opened }), [open, close, opened]);
   return (
     <ReserveContext.Provider value={value}>

@@ -17,8 +17,8 @@ export const RESERVE = {
   title: "Reserve My Spot",
   kicker: "Takes less than 30 seconds. Do not miss out.",
   timerLabel: "Spot reserved for",
-  submit: "Claim My Spot Now",
-  submitting: "Reserving your spot…",
+  submit: "Submit",
+  submitting: "Submitting…",
   consent:
     "I understand that forex trading involves significant risk. By submitting, I also agree to the Terms and Conditions of Poverty Killers FX (Pty) Ltd, including group chat guidelines and consent for marketing communications as per POPIA regulations.",
 };

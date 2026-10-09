@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { depositOptions, experienceOptions, previousProductOptions } from "@/config/form-options";
 import { RESERVE, TERMS_URL } from "@/config/content";
 import type { CountryOption } from "@/lib/countries";
@@ -47,7 +46,6 @@ export function ReserveForm({
   countries: CountryOption[];
   onClose?: () => void;
 }) {
-  const router = useRouter();
   const startedAt = useRef(Date.now());
   const [state, setState] = useState<FormState>(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -133,7 +131,8 @@ export function ReserveForm({
         return;
       }
       track("form_completed");
-      router.push(body.redirectTo);
+      onClose?.();
+      window.location.assign(body.redirectTo);
     } catch {
       setFormError("We couldn’t reserve your spot. Check your connection and try again.");
       setSubmitting(false);

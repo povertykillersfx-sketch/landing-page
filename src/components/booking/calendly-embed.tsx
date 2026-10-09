@@ -43,7 +43,7 @@ export function CalendlyEmbed({
       if (!afterBookingUrl) return;
       window.setTimeout(() => {
         window.location.assign(afterBookingUrl);
-      }, 900);
+      }, 1600);
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -53,18 +53,22 @@ export function CalendlyEmbed({
     <div>
       {booked ? (
         <p className="success-banner" role="status">
-          {afterBookingUrl ? "You’re booked. Taking you to the PKFX Telegram channel…" : "You’re booked. We’ll see you on the call."}
+          {afterBookingUrl
+            ? "You’re being redirected to join our free Telegram trading community"
+            : "You’re booked. We’ll see you on the call."}
         </p>
       ) : null}
       {note ? <p className="note">{note}</p> : null}
       {booked && afterBookingUrl ? (
         <p className="lede">
-          If you are not redirected, <a href={afterBookingUrl}>join the Telegram channel here</a>.
+          If you are not redirected, <a href={afterBookingUrl}>join the Telegram community here</a>.
         </p>
       ) : null}
-      <div className="calendly-box">
-        <div ref={parentRef} className="calendly-inline-widget" data-url={url} />
-      </div>
+      {booked && afterBookingUrl ? null : (
+        <div className="calendly-box">
+          <div ref={parentRef} className="calendly-inline-widget" data-url={url} />
+        </div>
+      )}
       <Script
         src="https://assets.calendly.com/assets/external/widget.js"
         strategy="afterInteractive"
