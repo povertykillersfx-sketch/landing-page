@@ -544,9 +544,9 @@ td a { color: var(--ice); }
 }
 .lp h1 {
   margin: 0 auto;
-  font-size: clamp(1.85rem, 7vw, 3.75rem);
+  font-size: clamp(1.7rem, 6.2vw, 3.15rem);
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.12;
   letter-spacing: -0.03em;
 }
 .lp h1 .accent {
@@ -557,7 +557,7 @@ td a { color: var(--ice); }
 }
 .lp-sub {
   margin: 1.2rem auto 0;
-  max-width: 42rem;
+  max-width: 38rem;
   color: hsl(40, 6%, 82%);
   font-size: 1.12rem;
   line-height: 1.65;
@@ -951,5 +951,5 @@ td a { color: var(--ice); }
 @media (min-width: 980px) {
   .sticky-cta { display: none; }
   .lp { padding-top: 3rem; }
-  .lp h1 { max-width: none; white-space: nowrap; font-size: clamp(2.6rem, 5vw, 4.4rem); }
+  .lp h1 { font-size: clamp(2.15rem, 4.2vw, 3.35rem); }
 }

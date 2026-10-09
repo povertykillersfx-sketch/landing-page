@@ -1,7 +1,7 @@
 export const BRAND_NAME = "Poverty Killers FX";
 export const BRAND_SHORT = "PKFX";
 
-export const PRIMARY_CTA = "Reserve My Free Spot";
+export const PRIMARY_CTA = "Get Free Access";
 
 export const PAGE_TITLE = "PKFX | AI Market Scanner + Free Trading Course";
 
@@ -25,10 +25,10 @@ export const RESERVE = {
 
 export const HERO = {
   eyebrow: "Financial education and technology",
-  headlineLead: "Learn Trading Using AI for",
-  headlineAccent: "Free",
+  headlineLead: "Get My AI Market Scanner +",
+  headlineAccent: "Free Trading Course",
   supporting:
-    "Join our free trading community today to get instant access to step-by-step educational content, exclusive live trading sessions, and real-time AI market analysis.",
+    "Discover a smarter way to approach the markets with the right tools, education and community.",
   videoHd: "HD Quality",
   videoLength: "30 Seconds",
   testimonialsCta: "Watch Member Testimonials",
