@@ -247,8 +247,8 @@ export function ReserveForm({
           </select>
           {errors.tradingExperience ? <p className="field-error">{errors.tradingExperience}</p> : null}
         </label>
-        <label className="field" htmlFor="previouslyPurchased">
-          <span>Bought a course, EA, or paid signals?</span>
+        <label className="field reserve-span" htmlFor="previouslyPurchased">
+          <span>Have you bought a course, EA or paid signals before?</span>
           <select
             id="previouslyPurchased"
             className="input"
