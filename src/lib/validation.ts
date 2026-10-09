@@ -57,6 +57,11 @@ export function formatPhone(phone: string): string {
   }
 }
 
+export function whatsappHref(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : "";
+}
+
 function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }

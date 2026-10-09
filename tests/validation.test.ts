@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCountryOptions } from "@/lib/countries";
-import { formatPhone, normalizePhone, sanitizeText, validateLead } from "@/lib/validation";
+import { formatPhone, normalizePhone, sanitizeText, validateLead, whatsappHref } from "@/lib/validation";
 
 const countries = [{ name: "United States" }, { name: "United Kingdom" }];
 
@@ -60,6 +60,7 @@ describe("lead validation", () => {
     expect(normalizePhone("GB", "020 7183 8750")).toBe("+442071838750");
     expect(normalizePhone("US", "not a phone")).toBeNull();
     expect(formatPhone("+14155552671")).toContain("+1");
+    expect(whatsappHref("+1 (415) 555-2671")).toBe("https://wa.me/14155552671");
   });
 
   it("strips markup from free text", () => {

@@ -6,7 +6,7 @@ import { StatusSelect } from "@/components/admin/status-select";
 import { getLead } from "@/lib/leads";
 import { getPublicConfig } from "@/lib/public-config";
 import { formatDateTime, safeTimeZone } from "@/lib/time";
-import { formatPhone } from "@/lib/validation";
+import { formatPhone, whatsappHref } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -36,7 +36,16 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             <div><dt>Full name</dt><dd>{lead.fullName}</dd></div>
             <div><dt>Email</dt><dd><a href={`mailto:${lead.email}`}>{lead.email}</a></dd></div>
             <div><dt>Phone</dt><dd><a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a></dd></div>
-            {lead.whatsapp ? <div><dt>WhatsApp</dt><dd><a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, "")}`}>{formatPhone(lead.whatsapp)}</a></dd></div> : null}
+            {lead.whatsapp ? (
+              <div>
+                <dt>WhatsApp</dt>
+                <dd>
+                  <a href={whatsappHref(lead.whatsapp)} target="_blank" rel="noopener noreferrer">
+                    {formatPhone(lead.whatsapp)}
+                  </a>
+                </dd>
+              </div>
+            ) : null}
             <div><dt>Country</dt><dd>{lead.country}</dd></div>
           </dl>
           <h2 style={{ marginTop: "1.4rem" }}>Trading Profile</h2>

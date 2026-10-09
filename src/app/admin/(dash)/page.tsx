@@ -2,9 +2,10 @@ import Link from "next/link";
 import { depositOptions, experienceOptions } from "@/config/form-options";
 import { LEAD_STATUSES } from "@/config/statuses";
 import { StatusSelect } from "@/components/admin/status-select";
-import { leadFiltersActive, leadStats, listLeadFacets, parseLeadQuery, queryLeads, type Lead, type LeadQuery } from "@/lib/leads";
+import { leadFiltersActive, leadStats, listLeadFacets, parseLeadQuery, queryLeads, type LeadQuery } from "@/lib/leads";
 import { getPublicConfig } from "@/lib/public-config";
 import { formatDateTime, safeTimeZone } from "@/lib/time";
+import { formatPhone, whatsappHref } from "@/lib/validation";
 
 export const metadata = { title: "Leads" };
 export const dynamic = "force-dynamic";
@@ -28,11 +29,6 @@ function queryString(query: LeadQuery, page?: number) {
     if (value) params.set(key, value);
   }
   return params.toString();
-}
-
-function purchaseLabel(lead: Lead) {
-  if (!lead.previouslyPurchased) return "No";
-  return lead.previousProducts.length ? `Yes · ${lead.previousProducts.join(", ")}` : "Yes";
 }
 
 export default async function AdminHome({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -61,7 +57,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       <div className="admin-top">
         <div>
           <h1>Leads</h1>
-          <p className="note">Counts use {timeZone}. Calls booked includes Calendly bookings and leads marked Call Booked.</p>
+          <p className="note">Every reserve-spot form submission is stored here. Counts use {timeZone}.</p>
         </div>
         <a className="btn btn-primary" href={exportHref} data-testid="export-csv">
           {active ? "Export filtered CSV" : "Export CSV"}
@@ -78,8 +74,8 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       <form className="filters panel" method="get" data-testid="lead-filters" key={queryString(query) || "all"}>
         <div className="filter-grid">
           <label className="field">
-            <span>Search name, email or phone</span>
-            <input className="input" name="q" defaultValue={query.q || ""} placeholder="Search" />
+            <span>Search name, email, phone or WhatsApp</span>
+            <input className="input" name="q" defaultValue={query.q || ""} placeholder="Search leads" />
           </label>
           <label className="field">
             <span>Country</span>
@@ -146,7 +142,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       {result.leads.length === 0 ? (
         <div className="empty panel" data-testid="empty-leads">
           {stats.total === 0
-            ? "No leads yet. When someone completes the qualification form, they will show up here."
+            ? "No leads yet. When someone submits the Reserve My Free Spot form, their details appear here."
             : "No leads match these filters."}
         </div>
       ) : (
@@ -162,10 +158,15 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                   <StatusSelect id={lead.id} status={lead.status} />
                 </header>
                 <a href={`mailto:${lead.email}`}>{lead.email}</a>
-                <div>{lead.phone} · {lead.country}</div>
-                <div>{lead.tradingExperience}</div>
-                <div>{purchaseLabel(lead)}</div>
-                <div>{lead.depositRange}</div>
+                <div><a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a></div>
+                {lead.whatsapp ? (
+                  <div>
+                    <a href={whatsappHref(lead.whatsapp)} target="_blank" rel="noopener noreferrer">
+                      WhatsApp {formatPhone(lead.whatsapp)}
+                    </a>
+                  </div>
+                ) : null}
+                <div>{lead.country} · {lead.tradingExperience}</div>
                 <Link className="btn btn-ghost" href={`/admin/leads/${lead.id}`}>View</Link>
               </article>
             ))}
@@ -177,11 +178,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
+                  <th>WhatsApp</th>
                   <th>Country</th>
-                  <th>Trading Experience</th>
-                  <th>Previous Purchases</th>
-                  <th>Typical Deposit</th>
-                  <th>Date Submitted</th>
+                  <th>Experience</th>
+                  <th>Submitted</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -191,14 +191,19 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                   <tr key={lead.id}>
                     <td>{lead.fullName}</td>
                     <td><a href={`mailto:${lead.email}`}>{lead.email}</a></td>
-                    <td><a href={`tel:${lead.phone}`}>{lead.phone}</a></td>
+                    <td><a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a></td>
+                    <td>
+                      {lead.whatsapp ? (
+                        <a href={whatsappHref(lead.whatsapp)} target="_blank" rel="noopener noreferrer">
+                          {formatPhone(lead.whatsapp)}
+                        </a>
+                      ) : "—"}
+                    </td>
                     <td>{lead.country}</td>
                     <td>{lead.tradingExperience}</td>
-                    <td>{purchaseLabel(lead)}</td>
-                    <td>{lead.depositRange}</td>
                     <td>{formatDateTime(lead.createdAt, timeZone)}</td>
                     <td><StatusSelect id={lead.id} status={lead.status} /></td>
-                    <td><Link href={`/admin/leads/${lead.id}`}>View</Link></td>
+                    <td><Link href={`/admin/leads/${lead.id}`}>Open</Link></td>
                   </tr>
                 ))}
               </tbody>

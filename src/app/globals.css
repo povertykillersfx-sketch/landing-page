@@ -19,6 +19,17 @@
   --header: 72px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -334,6 +345,37 @@ textarea.input { min-height: 140px; resize: vertical; }
 .login-card { width: min(440px, 100%); padding: 1.4rem; }
 .login-card h1 { font-size: 1.8rem; margin: 0.4rem 0 0.4rem; }
 
+.admin-app {
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(168, 85, 247, 0.16), transparent 55%),
+    radial-gradient(700px 380px at -10% 10%, rgba(99, 102, 241, 0.12), transparent 50%),
+    #0a0515;
+  color: hsl(40, 6%, 95%);
+}
+.admin-app .btn-primary {
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  color: white;
+  border: 0;
+}
+.admin-app .btn-primary:hover { color: white; background: linear-gradient(to right, #6366f1, #a855f7); }
+.admin-app .input,
+.admin-app select.input,
+.admin-app textarea.input,
+.admin-app .status-select {
+  background: #09060f;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.admin-app .panel,
+.admin-app .stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.admin-app .table-wrap { background: rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.1); }
+.admin-app th { color: #c4b5fd; }
+.admin-app td a { color: #c4b5fd; }
+.admin-app .login-card .logo { margin-bottom: 0.8rem; }
+.admin-app .login-card .logo-img { height: 42px; }
 .admin-shell { width: min(1180px, calc(100% - 1.5rem)); margin: 0 auto; padding: 1.2rem 0 3rem; }
 .admin-top { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1.2rem; }
 .admin-top h1 { font-size: 1.7rem; }

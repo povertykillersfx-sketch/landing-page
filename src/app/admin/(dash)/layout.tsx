@@ -11,8 +11,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="admin-shell">
       <header className="admin-top">
         <div>
-          <p className="eyebrow">PKFX</p>
-          <Link href="/admin"><strong>Lead dashboard</strong></Link>
+          <p className="eyebrow">PKFX Lead Portal</p>
+          <Link href="/admin"><strong>Submitted leads</strong></Link>
         </div>
         <div className="admin-actions">
           <span className="faint">{session.email}</span>
