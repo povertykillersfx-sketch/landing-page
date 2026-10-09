@@ -105,3 +105,18 @@ export function resetSupabase() {
   globalStore.__pkfxSupabaseAnon = undefined;
   globalStore.__pkfxSupabaseAdmin = undefined;
 }
+
+export function formatSupabaseError(error: { message?: string; code?: string } | null, fallback: string) {
+  if (!error) return null;
+  const message = error.message || fallback;
+  const code = error.code || "";
+  if (
+    code === "PGRST205" ||
+    code === "PGRST202" ||
+    /schema cache/i.test(message) ||
+    /Could not find the (table|function)/i.test(message)
+  ) {
+    return "Supabase tables are missing. Run supabase/schema.sql in the SQL Editor.";
+  }
+  return message;
+}

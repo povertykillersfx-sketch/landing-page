@@ -1,6 +1,6 @@
 -- PKFX lead funnel tables. Run this once in the Supabase SQL editor
--- (Dashboard → SQL → New query). The Next.js app uses the service role
--- key on the server, so these tables stay closed to the public.
+-- (Dashboard → SQL → New query). The app uses the anon key with RLS:
+-- visitors can insert new leads only; they cannot read or update rows.
 
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),

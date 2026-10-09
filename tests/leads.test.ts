@@ -3,7 +3,7 @@ import { leadsToCsv } from "@/lib/csv";
 import { leadStats, listLeadsForExport, markCallBooked, markCallBookedByEmail, parseLeadQuery, queryLeads, updateLead, createLead } from "@/lib/leads";
 import { recordAnalyticsEvent } from "@/lib/analytics";
 import { consumeRateLimit } from "@/lib/rate-limit";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { formatSupabaseError, isSupabaseConfigured } from "@/lib/supabase";
 import { sampleLead, useTestDb } from "./helpers";
 
 describe("leads database", () => {
@@ -78,6 +78,10 @@ describe("leads database", () => {
     expect(() => isSupabaseConfigured()).toThrow(/anon\/publishable/);
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_ANON_KEY;
+    expect(formatSupabaseError({ code: "PGRST205", message: "Could not find the table 'public.leads' in the schema cache" }, "fail")).toMatch(
+      /schema\.sql/,
+    );
+    expect(formatSupabaseError({ message: "permission denied" }, "fail")).toBe("permission denied");
   });
 
   it("rate limits and stores only known analytics events", async () => {

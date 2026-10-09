@@ -1,6 +1,6 @@
 import "server-only";
 import { getDb } from "@/lib/db";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { formatSupabaseError, getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const ALLOWED_EVENTS = new Set([
   "landing_page_view",
@@ -32,7 +32,8 @@ export async function recordAnalyticsEvent(event: string, path: string, metadata
       metadata: clean,
       created_at: createdAt,
     });
-    if (error) throw new Error(error.message);
+    const message = formatSupabaseError(error, "Analytics event could not be saved.");
+    if (message) throw new Error(message);
     return true;
   }
   const db = getDb();

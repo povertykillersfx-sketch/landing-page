@@ -1,7 +1,7 @@
 import "server-only";
 import { LEAD_STATUSES, isLeadStatus, type LeadStatus } from "@/config/statuses";
 import { getDb } from "@/lib/db";
-import { getSupabase, getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { formatSupabaseError, getSupabase, getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { addCalendarDays, isIsoDate, periodStarts, safeTimeZone, zonedMidnightUtc } from "@/lib/time";
 import { sanitizeText, type LeadPayload } from "@/lib/validation";
 
@@ -119,8 +119,9 @@ function mapLead(row: LeadRow): Lead {
   };
 }
 
-function throwIfError(error: { message: string } | null, fallback: string) {
-  if (error) throw new Error(error.message || fallback);
+function throwIfError(error: { message?: string; code?: string } | null, fallback: string) {
+  const message = formatSupabaseError(error, fallback);
+  if (message) throw new Error(message);
 }
 
 export async function createLead(input: LeadPayload, now = new Date()): Promise<Lead> {

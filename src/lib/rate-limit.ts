@@ -1,6 +1,6 @@
 import "server-only";
 import { getDb } from "@/lib/db";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { formatSupabaseError, getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function consumeRateLimit(key: string, limit: number, windowMs: number): Promise<boolean> {
   if (isSupabaseConfigured()) {
@@ -9,7 +9,8 @@ export async function consumeRateLimit(key: string, limit: number, windowMs: num
       p_limit: limit,
       p_window_ms: windowMs,
     });
-    if (error) throw new Error(error.message);
+    const message = formatSupabaseError(error, "Rate limit check failed.");
+    if (message) throw new Error(message);
     return data === true;
   }
   const db = getDb();
