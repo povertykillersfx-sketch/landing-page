@@ -1,7 +1,7 @@
 import "server-only";
 import { LEAD_STATUSES, isLeadStatus, type LeadStatus } from "@/config/statuses";
 import { getDb } from "@/lib/db";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabase, getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { addCalendarDays, isIsoDate, periodStarts, safeTimeZone, zonedMidnightUtc } from "@/lib/time";
 import { sanitizeText, type LeadPayload } from "@/lib/validation";
 
@@ -127,31 +127,44 @@ export async function createLead(input: LeadPayload, now = new Date()): Promise<
   const id = crypto.randomUUID();
   const timestamp = now.toISOString();
   if (isSupabaseConfigured()) {
-    const { data, error } = await getSupabase()
-      .from("leads")
-      .insert({
-        id,
-        full_name: input.fullName,
-        email: input.email,
-        phone: input.phone,
-        whatsapp: input.whatsapp,
-        country: input.country,
-        trading_experience: input.tradingExperience,
-        previously_purchased: input.previouslyPurchased,
-        previous_products: input.previousProducts,
-        deposit_range: input.depositRange,
-        deposit_rank: input.depositRank,
-        status: "new",
-        status_rank: statusRank("new"),
-        notes: "",
-        call_booked_at: null,
-        created_at: timestamp,
-        updated_at: timestamp,
-      })
-      .select("*")
-      .single();
+    const { error } = await getSupabase().from("leads").insert({
+      id,
+      full_name: input.fullName,
+      email: input.email,
+      phone: input.phone,
+      whatsapp: input.whatsapp,
+      country: input.country,
+      trading_experience: input.tradingExperience,
+      previously_purchased: input.previouslyPurchased,
+      previous_products: input.previousProducts,
+      deposit_range: input.depositRange,
+      deposit_rank: input.depositRank,
+      status: "new",
+      status_rank: statusRank("new"),
+      notes: "",
+      call_booked_at: null,
+      created_at: timestamp,
+      updated_at: timestamp,
+    });
     throwIfError(error, "Lead could not be saved.");
-    return mapLead(data as LeadRow);
+    return {
+      id,
+      fullName: input.fullName,
+      email: input.email,
+      phone: input.phone,
+      whatsapp: input.whatsapp,
+      country: input.country,
+      tradingExperience: input.tradingExperience,
+      previouslyPurchased: input.previouslyPurchased,
+      previousProducts: input.previousProducts,
+      depositRange: input.depositRange,
+      depositRank: input.depositRank,
+      status: "new",
+      notes: "",
+      callBookedAt: null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
   }
   getDb()
     .prepare(
@@ -182,7 +195,7 @@ export async function createLead(input: LeadPayload, now = new Date()): Promise<
 
 export async function getLead(id: string): Promise<Lead | null> {
   if (isSupabaseConfigured()) {
-    const { data, error } = await getSupabase().from("leads").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await (await getSupabaseAdmin()).from("leads").select("*").eq("id", id).maybeSingle();
     throwIfError(error, "Lead could not be loaded.");
     return data ? mapLead(data as LeadRow) : null;
   }
@@ -198,7 +211,7 @@ export async function updateLead(id: string, patch: { status?: LeadStatus; notes
   const callBookedAt = status === "call_booked" && !existing.callBookedAt ? new Date().toISOString() : existing.callBookedAt;
   const updatedAt = new Date().toISOString();
   if (isSupabaseConfigured()) {
-    const { error } = await getSupabase()
+    const { error } = await (await getSupabaseAdmin())
       .from("leads")
       .update({
         status,
@@ -218,25 +231,17 @@ export async function updateLead(id: string, patch: { status?: LeadStatus; notes
 }
 
 export async function markCallBooked(id: string): Promise<Lead | null> {
+  if (isSupabaseConfigured()) {
+    const { data, error } = await getSupabase().rpc("mark_lead_call_booked", { p_id: id });
+    throwIfError(error, "Lead could not be updated.");
+    return data ? mapLead(data as LeadRow) : null;
+  }
   const existing = await getLead(id);
   if (!existing) return null;
   const status = existing.status === "new" || existing.status === "contacted" ? "call_booked" : existing.status;
   const callBookedAt = existing.callBookedAt ?? new Date().toISOString();
   if (status === existing.status && callBookedAt === existing.callBookedAt) return existing;
   const updatedAt = new Date().toISOString();
-  if (isSupabaseConfigured()) {
-    const { error } = await getSupabase()
-      .from("leads")
-      .update({
-        status,
-        status_rank: statusRank(status),
-        call_booked_at: callBookedAt,
-        updated_at: updatedAt,
-      })
-      .eq("id", id);
-    throwIfError(error, "Lead could not be updated.");
-    return getLead(id);
-  }
   getDb()
     .prepare("UPDATE leads SET status = ?, call_booked_at = ?, updated_at = ? WHERE id = ?")
     .run(status, callBookedAt, updatedAt, id);
@@ -247,16 +252,9 @@ export async function markCallBookedByEmail(email: string): Promise<Lead | null>
   const normalized = email.trim().toLowerCase();
   if (!normalized) return null;
   if (isSupabaseConfigured()) {
-    const { data, error } = await getSupabase()
-      .from("leads")
-      .select("id")
-      .eq("email", normalized)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    throwIfError(error, "Lead could not be loaded.");
-    if (!data?.id) return null;
-    return markCallBooked(data.id as string);
+    const { data, error } = await getSupabase().rpc("mark_lead_call_booked_by_email", { p_email: normalized });
+    throwIfError(error, "Lead could not be updated.");
+    return data ? mapLead(data as LeadRow) : null;
   }
   const row = getDb()
     .prepare("SELECT id FROM leads WHERE email = ? ORDER BY created_at DESC LIMIT 1")
@@ -354,8 +352,8 @@ function whereClause(query: LeadQuery, timeZone: string) {
   };
 }
 
-function applySupabaseFilters(query: LeadQuery, timeZone: string) {
-  let request = getSupabase().from("leads").select("*", { count: "exact" });
+function applySupabaseFilters(client: Awaited<ReturnType<typeof getSupabaseAdmin>>, query: LeadQuery, timeZone: string) {
+  let request = client.from("leads").select("*", { count: "exact" });
   if (query.q) {
     const term = query.q.replace(/[%*,()]/g, " ").trim();
     if (term) {
@@ -387,7 +385,10 @@ export async function queryLeads(query: LeadQuery, timeZone = "UTC") {
   const page = Math.max(query.page || 1, 1);
   const offset = (page - 1) * pageSize;
   if (isSupabaseConfigured()) {
-    const { data, error, count } = await applySupabaseFilters(query, timeZone).range(offset, offset + pageSize - 1);
+    const { data, error, count } = await applySupabaseFilters(await getSupabaseAdmin(), query, timeZone).range(
+      offset,
+      offset + pageSize - 1,
+    );
     throwIfError(error, "Leads could not be loaded.");
     return { leads: (data || []).map((row) => mapLead(row as LeadRow)), total: count || 0, page, pageSize };
   }
@@ -423,7 +424,7 @@ export type LeadStats = {
 export async function leadStats(now = new Date(), timeZone = "UTC"): Promise<LeadStats> {
   const starts = periodStarts(now, timeZone);
   if (isSupabaseConfigured()) {
-    const client = getSupabase();
+    const client = await getSupabaseAdmin();
     const today = starts.today.toISOString();
     const week = starts.week.toISOString();
     const month = starts.month.toISOString();
@@ -478,7 +479,7 @@ export async function leadStats(now = new Date(), timeZone = "UTC"): Promise<Lea
 
 export async function listLeadFacets() {
   if (isSupabaseConfigured()) {
-    const { data, error } = await getSupabase().from("leads").select("country, trading_experience");
+    const { data, error } = await (await getSupabaseAdmin()).from("leads").select("country, trading_experience");
     throwIfError(error, "Lead filters could not be loaded.");
     const countries = [
       ...new Set((data || []).map((row) => String(row.country || "")).filter(Boolean)),

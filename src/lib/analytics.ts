@@ -33,10 +33,6 @@ export async function recordAnalyticsEvent(event: string, path: string, metadata
       created_at: createdAt,
     });
     if (error) throw new Error(error.message);
-    if (Math.random() < 0.01) {
-      const cutoff = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
-      await getSupabase().from("analytics_events").delete().lt("created_at", cutoff);
-    }
     return true;
   }
   const db = getDb();

@@ -34,7 +34,7 @@ npm run build
 npm start
 ```
 
-With `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set, leads are stored in Supabase and the app can run on a serverless host. Without those variables it falls back to a local SQLite file, which needs a persistent disk.
+With `SUPABASE_URL` and `SUPABASE_ANON_KEY` set, leads are stored in Supabase and the app can run on a serverless host. Without those variables it falls back to a local SQLite file, which needs a persistent disk.
 
 ## Configuration
 
@@ -42,7 +42,7 @@ Edit [`src/config/site.ts`](src/config/site.ts). Environment variables override 
 
 | What | Config field | Environment variable |
 | --- | --- | --- |
-| Supabase project | — | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Supabase project | — | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 | Calendly link | `calendlyUrl` / `CALENDLY_URL` | `CALENDLY_URL` |
 | Telegram channel | `telegramUrl` | `TELEGRAM_URL` |
 | Walkthrough video | `vslVideoUrl` | `VSL_VIDEO_URL` |
@@ -67,10 +67,11 @@ Other editable content:
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
-3. Copy **Project URL** and the **service_role** key from **Project Settings → API**.
-4. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (and in production).
+3. Copy **Project URL** and the **anon public** / **publishable** key from **Project Settings → API**. Do not use the service role secret.
+4. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `.env.local` (and in production).
+5. Create an Auth user with the same email and password as `ADMIN_EMAIL` / `ADMIN_PASSWORD` (Authentication → Users), or turn off **Confirm email** so the app can create it on first admin login.
 
-The service role key stays on the server. Form posts still go through `/api/leads`; the browser never talks to Supabase directly. Row Level Security is on, with no public policies.
+The browser never talks to Supabase. The anon key is used only on the server. Row Level Security allows anonymous **inserts** of new leads and blocks anonymous **reads**. Admin listing uses a signed-in Auth user whose email is in `admin_emails`.
 
 ## Admin
 
@@ -100,7 +101,7 @@ Events recorded in the database, and forwarded to Google Analytics or Meta when 
 ## Security
 
 - Admin pages and the CSV export require a signed httpOnly session cookie. Hiding `/admin` is not the access control.
-- Lead writes are validated on the server, stored in Supabase (or parameterized SQLite as a fallback), and rate limited.
+- Lead writes are validated on the server, stored in Supabase with insert-only RLS (or parameterized SQLite as a fallback), and rate limited.
 - Browser mutations check the request origin.
 - Secrets stay in environment variables and are not shipped to the browser.
 

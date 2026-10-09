@@ -9,6 +9,7 @@ data/*.sqlite-journal
 .env
 .env.local
 .env.*.local
+supabase/.temp
 *.log
 test-results
 playwright-report

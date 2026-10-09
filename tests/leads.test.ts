@@ -65,14 +65,19 @@ describe("leads database", () => {
     expect(nextMorning.today).toBe(0);
   });
 
-  it("does not use Supabase unless both env values are set", () => {
+  it("does not use Supabase unless the anon key is set", () => {
     expect(isSupabaseConfigured()).toBe(false);
     process.env.SUPABASE_URL = "https://example.supabase.co";
-    expect(() => isSupabaseConfigured()).toThrow(/both/);
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
-    expect(isSupabaseConfigured()).toBe(true);
-    delete process.env.SUPABASE_URL;
+    expect(isSupabaseConfigured()).toBe(false);
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "sb_secret_not-for-this-app";
+    expect(() => isSupabaseConfigured()).toThrow(/ANON_KEY/);
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    process.env.SUPABASE_ANON_KEY = "sb_publishable_example";
+    expect(isSupabaseConfigured()).toBe(true);
+    process.env.SUPABASE_ANON_KEY = "sb_secret_example";
+    expect(() => isSupabaseConfigured()).toThrow(/anon\/publishable/);
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_ANON_KEY;
   });
 
   it("rate limits and stores only known analytics events", async () => {

@@ -45,9 +45,18 @@ create table if not exists public.rate_limits (
   window_start bigint not null
 );
 
+create table if not exists public.admin_emails (
+  email text primary key
+);
+
+insert into public.admin_emails (email)
+values ('admin@povertykillersfx.com')
+on conflict (email) do nothing;
+
 alter table public.leads enable row level security;
 alter table public.analytics_events enable row level security;
 alter table public.rate_limits enable row level security;
+alter table public.admin_emails enable row level security;
 
 create or replace function public.consume_rate_limit(p_key text, p_limit integer, p_window_ms bigint)
 returns boolean
@@ -80,8 +89,111 @@ begin
 end;
 $$;
 
-revoke all on public.leads from anon, authenticated;
-revoke all on public.analytics_events from anon, authenticated;
-revoke all on public.rate_limits from anon, authenticated;
-revoke all on function public.consume_rate_limit(text, integer, bigint) from anon, authenticated;
-grant execute on function public.consume_rate_limit(text, integer, bigint) to service_role;
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.admin_emails
+    where email = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+$$;
+
+create or replace function public.mark_lead_call_booked(p_id uuid)
+returns public.leads
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  rec public.leads%rowtype;
+begin
+  select * into rec from public.leads where id = p_id;
+  if not found then
+    return null;
+  end if;
+  if rec.status in ('new', 'contacted') then
+    rec.status := 'call_booked';
+    rec.status_rank := 2;
+  end if;
+  if rec.call_booked_at is null then
+    rec.call_booked_at := timezone('utc', now());
+  end if;
+  rec.updated_at := timezone('utc', now());
+  update public.leads
+  set status = rec.status,
+      status_rank = rec.status_rank,
+      call_booked_at = rec.call_booked_at,
+      updated_at = rec.updated_at
+  where id = p_id;
+  return rec;
+end;
+$$;
+
+create or replace function public.mark_lead_call_booked_by_email(p_email text)
+returns public.leads
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  rec public.leads%rowtype;
+begin
+  select * into rec
+  from public.leads
+  where email = lower(trim(p_email))
+  order by created_at desc
+  limit 1;
+  if not found then
+    return null;
+  end if;
+  return public.mark_lead_call_booked(rec.id);
+end;
+$$;
+
+drop policy if exists anon_insert_leads on public.leads;
+create policy anon_insert_leads on public.leads
+  for insert to anon
+  with check (
+    status = 'new'
+    and status_rank = 0
+    and notes = ''
+    and call_booked_at is null
+  );
+
+drop policy if exists admin_select_leads on public.leads;
+create policy admin_select_leads on public.leads
+  for select to authenticated
+  using (public.is_admin());
+
+drop policy if exists admin_update_leads on public.leads;
+create policy admin_update_leads on public.leads
+  for update to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists anon_insert_analytics on public.analytics_events;
+create policy anon_insert_analytics on public.analytics_events
+  for insert to anon
+  with check (true);
+
+revoke all on public.leads from anon, authenticated, public;
+revoke all on public.analytics_events from anon, authenticated, public;
+revoke all on public.rate_limits from anon, authenticated, public;
+revoke all on public.admin_emails from anon, authenticated, public;
+revoke all on function public.consume_rate_limit(text, integer, bigint) from anon, authenticated, public;
+revoke all on function public.mark_lead_call_booked(uuid) from anon, authenticated, public;
+revoke all on function public.mark_lead_call_booked_by_email(text) from anon, authenticated, public;
+revoke all on function public.is_admin() from anon, authenticated, public;
+
+grant insert on public.leads to anon;
+grant select, update on public.leads to authenticated;
+grant insert on public.analytics_events to anon;
+grant execute on function public.consume_rate_limit(text, integer, bigint) to anon, authenticated;
+grant execute on function public.mark_lead_call_booked(uuid) to anon, authenticated;
+grant execute on function public.mark_lead_call_booked_by_email(text) to anon, authenticated;
+grant execute on function public.is_admin() to authenticated;
