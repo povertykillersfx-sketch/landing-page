@@ -1,7 +1,9 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import Database from "better-sqlite3";
+import type { Database as SqliteDatabase } from "better-sqlite3";
+
+type SqliteConstructor = typeof import("better-sqlite3");
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS leads (
@@ -46,13 +48,22 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 );
 `;
 
-const globalDb = globalThis as unknown as { __pkfxDb?: Database.Database };
+const globalDb = globalThis as unknown as { __pkfxDb?: SqliteDatabase };
+
+function loadSqlite(): SqliteConstructor {
+  try {
+    return require("better-sqlite3") as SqliteConstructor;
+  } catch {
+    throw new Error("SQLite is unavailable. Set SUPABASE_URL and SUPABASE_ANON_KEY for production.");
+  }
+}
 
 function databasePath() {
   return process.env.DATABASE_PATH || path.join(process.cwd(), "data", "pkfx.sqlite");
 }
 
 function openDatabase() {
+  const Database = loadSqlite();
   const file = databasePath();
   if (file !== ":memory:") {
     fs.mkdirSync(path.dirname(file), { recursive: true });

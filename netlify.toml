@@ -1,0 +1,13 @@
+# PKFX lives at the repository root (not a monorepo subfolder).
+# Leave Base directory blank in the Netlify UI.
+# Use `npm run build` so Next.js is invoked from node_modules/.bin after npm install.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

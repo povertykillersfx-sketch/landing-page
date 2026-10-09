@@ -36,6 +36,27 @@ npm start
 
 With `SUPABASE_URL` and `SUPABASE_ANON_KEY` set, leads are stored in Supabase and the app can run on a serverless host. Without those variables it falls back to a local SQLite file, which needs a persistent disk.
 
+## Netlify
+
+This app is at the **repository root**. `package.json`, `package-lock.json`, and `next.config.ts` are not inside a subfolder. In Netlify:
+
+1. Leave **Base directory** blank.
+2. Build command: `npm run build` (from `netlify.toml`; do not use a bare `next build`).
+3. Publish directory: `.next`
+4. Deploy the branch that contains this app. `main` currently only has a README, so production must use this branch until the pull request is merged.
+5. Set these environment variables (Site configuration → Environment variables), then redeploy:
+
+| Variable | Purpose |
+| --- | --- |
+| `SITE_URL` | Public https origin, e.g. `https://your-site.netlify.app` |
+| `SUPABASE_URL` | `https://YOUR-PROJECT.supabase.co` |
+| `SUPABASE_ANON_KEY` | Anon / publishable key (not the service role secret) |
+| `ADMIN_EMAIL` | Admin login email |
+| `ADMIN_PASSWORD` | Admin login password (12+ characters) |
+| `SESSION_SECRET` | Random string, at least 32 characters |
+
+Do not put secrets in git. After the first deploy, point `SITE_URL` at your real domain.
+
 ## Configuration
 
 Edit [`src/config/site.ts`](src/config/site.ts). Environment variables override those values.
