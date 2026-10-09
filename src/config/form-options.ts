@@ -19,16 +19,12 @@ export const previousProductOptions = [
 /**
  * Typical minimum deposit. Change labels here if the ranges change.
  * `rank` controls "Highest deposit range" sorting. Higher ranks sort first.
- * Keep "Prefer not to say" at rank 0.
  */
 export const depositOptions = [
   { value: "Under $100", rank: 1 },
   { value: "$100–$499", rank: 2 },
   { value: "$500–$999", rank: 3 },
-  { value: "$1,000–$4,999", rank: 4 },
-  { value: "$5,000–$9,999", rank: 5 },
-  { value: "$10,000+", rank: 6 },
-  { value: "Prefer not to say", rank: 0 },
+  { value: "$1000+", rank: 4 },
 ] as const;
 
 export type ExperienceOption = (typeof experienceOptions)[number];

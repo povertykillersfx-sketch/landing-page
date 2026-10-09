@@ -13,7 +13,7 @@ const valid = {
   tradingExperience: "1–2 years",
   previouslyPurchased: true,
   previousProducts: ["Trading course", "<script>alert(1)</script>"],
-  depositRange: "$1,000–$4,999",
+  depositRange: "$1000+",
   consent: true,
 };
 
@@ -39,6 +39,7 @@ describe("lead validation", () => {
     expect(result.errors.tradingExperience).toBeTruthy();
     expect(result.errors.previouslyPurchased).toBeTruthy();
     expect(result.errors.depositRange).toBeTruthy();
+    expect(validateLead({ ...valid, depositRange: "Prefer not to say" }, countries).ok).toBe(false);
   });
 
   it("requires consent and allows an empty WhatsApp number", () => {

@@ -28,6 +28,6 @@ export const sampleLead = {
   tradingExperience: "1–2 years",
   previouslyPurchased: true,
   previousProducts: ["Trading course", "Paid signals"],
-  depositRange: "$1,000–$4,999",
+  depositRange: "$1000+",
   depositRank: 4,
 };

@@ -12,7 +12,7 @@ describe("leads database", () => {
 
   it("saves, updates, filters, sorts and exports leads", () => {
     const older = createLead({ ...sampleLead, fullName: "Grace Hopper", email: "grace@example.com", depositRange: "Under $100", depositRank: 1 }, new Date("2026-08-01T12:00:00.000Z"));
-    const newer = createLead({ ...sampleLead, fullName: "=Ada", email: "ada@example.com", depositRange: "$10,000+", depositRank: 6 }, new Date("2026-10-05T12:00:00.000Z"));
+    const newer = createLead({ ...sampleLead, fullName: "=Ada", email: "ada@example.com", depositRange: "$1000+", depositRank: 4 }, new Date("2026-10-05T12:00:00.000Z"));
     const mid = createLead({ ...sampleLead, fullName: "Katherine Johnson", email: "kj@example.com", whatsapp: "+447911123456", previouslyPurchased: false, previousProducts: [], country: "United Kingdom", depositRange: "$500–$999", depositRank: 3 }, new Date("2026-10-03T12:00:00.000Z"));
 
     expect(queryLeads({ q: `" OR 1=1 --` }).total).toBe(0);
@@ -20,8 +20,8 @@ describe("leads database", () => {
     expect(queryLeads({ q: "447911123456" }).leads.map((lead) => lead.id)).toEqual([mid.id]);
     expect(queryLeads({ country: "United Kingdom" }).leads.map((lead) => lead.id)).toEqual([mid.id]);
     expect(queryLeads({ purchased: "no" }).total).toBe(1);
-    expect(queryLeads({ experience: "1–2 years", deposit: "$10,000+" }).leads[0]?.id).toBe(newer.id);
-    expect(queryLeads({ sort: "deposit" }).leads.map((lead) => lead.depositRange)).toEqual(["$10,000+", "$500–$999", "Under $100"]);
+    expect(queryLeads({ experience: "1–2 years", deposit: "$1000+" }).leads[0]?.id).toBe(newer.id);
+    expect(queryLeads({ sort: "deposit" }).leads.map((lead) => lead.depositRange)).toEqual(["$1000+", "$500–$999", "Under $100"]);
     expect(queryLeads({ sort: "oldest" }).leads[0]?.id).toBe(older.id);
     expect(parseLeadQuery({ sort: "created_at; drop table leads", page: "2" }).sort).toBe("newest");
 
