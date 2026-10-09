@@ -848,7 +848,8 @@ td a { color: var(--ice); }
   z-index: 80;
   background: rgba(4, 1, 10, 0.72);
   display: grid;
-  place-items: center;
+  justify-items: center;
+  align-items: start;
   padding: 1rem;
   overflow: auto;
 }
@@ -943,6 +944,7 @@ td a { color: var(--ice); }
   .lp-header .nav-links { display: flex; }
   .lp-menu, .lp-menu-panel { display: none; }
   .lp-proof { flex-direction: row; padding: 1rem 1.4rem; }
+  .reserve-overlay { align-items: center; }
   .reserve-grid { grid-template-columns: 1fr 1fr; }
   .results-wall { columns: 2; }
 }
