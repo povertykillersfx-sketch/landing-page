@@ -2,7 +2,9 @@ import { createHmac } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { verifyAdminCredentials } from "@/lib/admin-auth";
 import { buildCalendlyEmbedUrl, calendlyInviteeEmail, verifyCalendlySignature } from "@/lib/calendly";
+import { PKFX_CONFIG } from "@/config/site";
 import { signAdminSession, signBookingToken, verifyAdminSession, verifyBookingToken } from "@/lib/session";
+import { isCalendlyUrl, isConfiguredUrl } from "@/lib/urls";
 import { useTestAuth } from "./helpers";
 
 describe("auth and calendly", () => {
@@ -36,5 +38,14 @@ describe("auth and calendly", () => {
     const url = buildCalendlyEmbedUrl("https://calendly.com/pkfx/intro", { name: "Ada Lovelace", email: "ada@example.com" });
     expect(url).toContain("name=Ada+Lovelace");
     expect(url).toContain("email=ada%40example.com");
+  });
+
+  it("sends applicants to the PKFX Calendly event, then Telegram after booking", () => {
+    expect(PKFX_CONFIG.calendlyUrl).toBe("https://calendly.com/povertykillersfx/pkfx-ai-market-scanner-course");
+    expect(isCalendlyUrl(PKFX_CONFIG.calendlyUrl)).toBe(true);
+    expect(PKFX_CONFIG.telegramUrl).toBe("https://t.me/povertykillersfx");
+    expect(isConfiguredUrl(PKFX_CONFIG.telegramUrl)).toBe(true);
+    const embed = buildCalendlyEmbedUrl(PKFX_CONFIG.calendlyUrl, { name: "Ada Lovelace", email: "ada@example.com" });
+    expect(embed).toContain("calendly.com/povertykillersfx/pkfx-ai-market-scanner-course");
   });
 });

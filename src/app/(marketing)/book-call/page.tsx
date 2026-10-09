@@ -37,11 +37,12 @@ export default async function BookCallPage({ searchParams }: { searchParams: Pro
     <div className="page-narrow">
       <p className="eyebrow">Booking</p>
       <h1>Book Your PKFX Call</h1>
-      <p className="lede">Choose a time that works for you.</p>
+      <p className="lede">Choose a time that works for you. After you book, we’ll send you to the PKFX Telegram channel.</p>
       {configured && isCalendlyUrl(config.calendlyUrl) ? (
         <CalendlyEmbed
           token={token || ""}
           url={buildCalendlyEmbedUrl(config.calendlyUrl, { name: booking.name, email: booking.email })}
+          afterBookingUrl={isConfiguredUrl(config.telegramUrl) ? config.telegramUrl : undefined}
         />
       ) : null}
       {configured && !isCalendlyUrl(config.calendlyUrl) ? <ExternalBookingRedirect url={config.calendlyUrl} /> : null}

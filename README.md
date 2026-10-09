@@ -8,10 +8,11 @@ The funnel is:
 2. Video walkthrough
 3. Testimonials and offer
 4. **Get My Market Scanner + Free Course**
-5. Qualification form (`/apply`)
+5. Qualification form (`/apply` or the reserve-spot modal)
 6. Lead saved to the database
-7. Booking page (`/book-call`)
-8. Admin dashboard (`/admin`)
+7. Booking page (`/book-call`) with the Calendly embed
+8. After a time is booked, redirect to the PKFX Telegram channel
+9. Admin dashboard (`/admin`)
 
 Landing-page buttons never send someone straight to Calendly. The booking page only opens after a valid application.
 
@@ -42,15 +43,16 @@ Edit [`src/config/site.ts`](src/config/site.ts). Environment variables override 
 | What | Config field | Environment variable |
 | --- | --- | --- |
 | Calendly link | `calendlyUrl` / `CALENDLY_URL` | `CALENDLY_URL` |
+| Telegram channel | `telegramUrl` | `TELEGRAM_URL` |
 | Walkthrough video | `vslVideoUrl` | `VSL_VIDEO_URL` |
 | Logo | `logoUrl` | `LOGO_URL` |
-| Instagram, Telegram, YouTube | matching fields | — |
+| Instagram, YouTube | matching fields | — |
 | Google Analytics | `gaMeasurementId` | `GA_MEASUREMENT_ID` |
 | Meta Pixel | `metaPixelId` | `META_PIXEL_ID` |
 | Dashboard timezone | `businessTimezone` | `BUSINESS_TIMEZONE` |
 | Public site URL | `siteUrl` | `SITE_URL` |
 
-Video URLs can be YouTube, Vimeo, or a direct `.mp4` / `.webm` file. Calendly links on `calendly.com` are embedded. Any other configured booking URL is used as a redirect after the lead is saved.
+Video URLs can be YouTube, Vimeo, or a direct `.mp4` / `.webm` file. Calendly links on `calendly.com` are embedded on `/book-call` after the form is submitted. When a time is booked, the page redirects to the Telegram channel. Any other configured booking URL is used as a redirect after the lead is saved.
 
 Other editable content:
 
