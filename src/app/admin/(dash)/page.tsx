@@ -147,7 +147,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       {result.leads.length === 0 ? (
         <div className="empty panel" data-testid="empty-leads">
           {stats.total === 0
-            ? "No leads yet. When someone submits the Reserve My Free Spot form, their details appear here."
+            ? "No leads yet. When someone submits the Get Free Access form, their details appear here."
             : "No leads match these filters."}
         </div>
       ) : (
