@@ -45,8 +45,8 @@ export function LandingPage({ videoUrl }: { videoUrl: string }) {
         <SpotLabel />
       </CtaLink>
       <p className="lp-note">{HERO.applicationNote}</p>
-      <OfferAccordion />
       <MemberResults />
+      <OfferAccordion />
       <SocialProof />
     </div>
   );

@@ -701,7 +701,7 @@ td a { color: var(--ice); }
 }
 .lp-testi { margin: 2.2rem 0 0; }
 .lp-results {
-  margin: 3.2rem auto 0;
+  margin: 2.4rem auto 0;
   max-width: 920px;
   text-align: center;
   scroll-margin-top: 80px;
