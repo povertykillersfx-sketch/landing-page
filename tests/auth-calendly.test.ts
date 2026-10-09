@@ -43,7 +43,7 @@ describe("auth and calendly", () => {
   it("sends applicants to the PKFX Calendly event, then Telegram after booking", () => {
     expect(PKFX_CONFIG.calendlyUrl).toBe("https://calendly.com/povertykillersfx/pkfx-ai-market-scanner-course");
     expect(isCalendlyUrl(PKFX_CONFIG.calendlyUrl)).toBe(true);
-    expect(PKFX_CONFIG.telegramUrl).toBe("https://t.me/povertykillersfx");
+    expect(PKFX_CONFIG.telegramUrl).toBe("https://t.me/pkfxtradingcommunity");
     expect(isConfiguredUrl(PKFX_CONFIG.telegramUrl)).toBe(true);
     const embed = buildCalendlyEmbedUrl(PKFX_CONFIG.calendlyUrl, { name: "Ada Lovelace", email: "ada@example.com" });
     expect(embed).toContain("calendly.com/povertykillersfx/pkfx-ai-market-scanner-course");

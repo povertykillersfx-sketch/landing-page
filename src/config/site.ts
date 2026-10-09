@@ -18,7 +18,7 @@ export const PKFX_CONFIG = {
   vslVideoUrl: "https://vimeo.com/1201786453",
   logoUrl: "https://i.ibb.co/Mx3hvS9m/PK-FX-Real-PNG-2.png",
   instagramUrl: "YOUR_INSTAGRAM_URL",
-  telegramUrl: "https://t.me/povertykillersfx",
+  telegramUrl: "https://t.me/pkfxtradingcommunity",
   youtubeUrl: "YOUR_YOUTUBE_URL",
   gaMeasurementId: "",
   metaPixelId: "",
