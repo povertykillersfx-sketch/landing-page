@@ -87,13 +87,16 @@ export async function getSupabaseAdmin(): Promise<SupabaseClient> {
   }
 
   const client = createAnonClient();
-  let session = (await client.auth.signInWithPassword({ email, password })).data.session;
+  const signedIn = await client.auth.signInWithPassword({ email, password });
+  let session = signedIn.data.session;
   if (!session) {
-    session = (await client.auth.signUp({ email, password })).data.session;
+    const created = await client.auth.signUp({ email, password });
+    session = created.data.session;
   }
   if (!session) {
+    const hint = signedIn.error?.message || "email is not confirmed";
     throw new Error(
-      "Could not sign the admin into Supabase. Create an Auth user with ADMIN_EMAIL / ADMIN_PASSWORD, or turn off Confirm email and try again.",
+      `Could not sign the admin into Supabase (${hint}). In Authentication → Users, create ${email} with ADMIN_PASSWORD, confirm the email (or turn off Confirm email), and add that email to public.admin_emails.`,
     );
   }
   const expiresAt = (session.expires_at || Math.floor(Date.now() / 1000) + 50 * 60) * 1000;

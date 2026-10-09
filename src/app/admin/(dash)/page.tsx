@@ -40,9 +40,26 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const query = parseLeadQuery(params);
   const timeZone = safeTimeZone(getPublicConfig().businessTimezone);
-  const stats = await leadStats(new Date(), timeZone);
-  const result = await queryLeads(query, timeZone);
-  const facets = await listLeadFacets();
+  let stats;
+  let result;
+  let facets;
+  try {
+    stats = await leadStats(new Date(), timeZone);
+    result = await queryLeads(query, timeZone);
+    facets = await listLeadFacets();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not load leads from Supabase.";
+    return (
+      <div className="empty panel" role="alert">
+        <h1>Leads are not available yet</h1>
+        <p className="note">{message}</p>
+        <p className="note">
+          In Supabase, create an Auth user with the same email and password as <code>ADMIN_EMAIL</code> /{" "}
+          <code>ADMIN_PASSWORD</code>, confirm that email, and add it to <code>public.admin_emails</code>.
+        </p>
+      </div>
+    );
+  }
   const experiences = [...new Set([...experienceOptions, ...facets.experiences])];
   const active = leadFiltersActive(query);
   const exportHref = `/api/admin/export${queryString(query) ? `?${queryString(query)}` : ""}`;

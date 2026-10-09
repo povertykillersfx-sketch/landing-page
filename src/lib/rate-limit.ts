@@ -2,17 +2,37 @@ import "server-only";
 import { getDb } from "@/lib/db";
 import { formatSupabaseError, getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
-export async function consumeRateLimit(key: string, limit: number, windowMs: number): Promise<boolean> {
-  if (isSupabaseConfigured()) {
-    const { data, error } = await getSupabase().rpc("consume_rate_limit", {
-      p_key: key.slice(0, 120),
-      p_limit: limit,
-      p_window_ms: windowMs,
-    });
-    const message = formatSupabaseError(error, "Rate limit check failed.");
-    if (message) throw new Error(message);
-    return data === true;
+const memoryStore = globalThis as unknown as {
+  __pkfxRateLimits?: Map<string, { count: number; windowStart: number }>;
+};
+
+function memoryLimits() {
+  if (!memoryStore.__pkfxRateLimits) memoryStore.__pkfxRateLimits = new Map();
+  return memoryStore.__pkfxRateLimits;
+}
+
+export function consumeMemoryRateLimit(key: string, limit: number, windowMs: number): boolean {
+  const store = memoryLimits();
+  const now = Date.now();
+  const rec = store.get(key);
+  if (!rec || now - rec.windowStart >= windowMs) {
+    store.set(key, { count: 1, windowStart: now });
+    return true;
   }
+  if (rec.count >= limit) return false;
+  rec.count += 1;
+  return true;
+}
+
+function supabaseReady() {
+  try {
+    return isSupabaseConfigured();
+  } catch {
+    return false;
+  }
+}
+
+function consumeSqliteRateLimit(key: string, limit: number, windowMs: number): boolean {
   const db = getDb();
   const now = Date.now();
   const run = db.transaction(() => {
@@ -34,4 +54,28 @@ export async function consumeRateLimit(key: string, limit: number, windowMs: num
     return true;
   });
   return run();
+}
+
+export async function consumeRateLimit(key: string, limit: number, windowMs: number): Promise<boolean> {
+  const safeKey = key.slice(0, 120);
+  if (supabaseReady()) {
+    try {
+      const { data, error } = await getSupabase().rpc("consume_rate_limit", {
+        p_key: safeKey,
+        p_limit: limit,
+        p_window_ms: windowMs,
+      });
+      const message = formatSupabaseError(error, "Rate limit check failed.");
+      if (!message) return data === true;
+      console.error(message);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : "Supabase rate limit failed");
+    }
+  }
+  try {
+    return consumeSqliteRateLimit(safeKey, limit, windowMs);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "SQLite rate limit failed");
+    return consumeMemoryRateLimit(safeKey, limit, windowMs);
+  }
 }

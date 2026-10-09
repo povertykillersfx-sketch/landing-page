@@ -45,10 +45,13 @@ export async function POST(request: Request) {
     if (error instanceof RequestError) {
       return NextResponse.json({ ok: false, error: error.message }, { status: error.status });
     }
-    const message = error instanceof Error && error.message.includes("SESSION_SECRET")
-      ? "Admin session is not configured. Set SESSION_SECRET."
-      : "Something went wrong. Please try again.";
-    console.error(error instanceof Error ? error.message : "Login failed");
+    const raw = error instanceof Error ? error.message : "Login failed";
+    console.error(raw);
+    const message = /SESSION_SECRET/i.test(raw)
+      ? "Admin session is not configured. Set SESSION_SECRET in Netlify (32+ characters)."
+      : /SQLite|SUPABASE_ANON_KEY|schema\.sql/i.test(raw)
+        ? "Set SUPABASE_URL and SUPABASE_ANON_KEY on Netlify, then redeploy."
+        : "Something went wrong. Please try again.";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

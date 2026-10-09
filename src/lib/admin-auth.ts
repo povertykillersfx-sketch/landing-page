@@ -29,7 +29,7 @@ async function expectedPasswordHash(): Promise<string | null> {
   const password = process.env.ADMIN_PASSWORD || "";
   if (password.length < 10) return null;
   if (hashCache?.source === password) return hashCache.hash;
-  const hash = await bcrypt.hash(password, 12);
+  const hash = await bcrypt.hash(password, 10);
   hashCache = { source: password, hash };
   return hash;
 }

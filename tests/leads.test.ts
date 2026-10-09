@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { leadsToCsv } from "@/lib/csv";
 import { leadStats, listLeadsForExport, markCallBooked, markCallBookedByEmail, parseLeadQuery, queryLeads, updateLead, createLead } from "@/lib/leads";
 import { recordAnalyticsEvent } from "@/lib/analytics";
-import { consumeRateLimit } from "@/lib/rate-limit";
+import { consumeMemoryRateLimit, consumeRateLimit } from "@/lib/rate-limit";
 import { formatSupabaseError, isSupabaseConfigured } from "@/lib/supabase";
 import { sampleLead, useTestDb } from "./helpers";
 
@@ -88,6 +88,10 @@ describe("leads database", () => {
     expect(await consumeRateLimit("lead:test", 2, 60_000)).toBe(true);
     expect(await consumeRateLimit("lead:test", 2, 60_000)).toBe(true);
     expect(await consumeRateLimit("lead:test", 2, 60_000)).toBe(false);
+    const memoryKey = `memory:${crypto.randomUUID()}`;
+    expect(consumeMemoryRateLimit(memoryKey, 2, 60_000)).toBe(true);
+    expect(consumeMemoryRateLimit(memoryKey, 2, 60_000)).toBe(true);
+    expect(consumeMemoryRateLimit(memoryKey, 2, 60_000)).toBe(false);
     expect(await recordAnalyticsEvent("cta_click", "/apply", { location: "hero", bad: 1 as never })).toBe(true);
     expect(await recordAnalyticsEvent("drop_table", "/", {})).toBe(false);
   });

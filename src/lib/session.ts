@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 export const ADMIN_COOKIE = "pkfx_admin_session";
 
 function secretKey() {
-  const secret = process.env.SESSION_SECRET || "";
+  const secret = (process.env.SESSION_SECRET || "").trim();
   if (secret.length < 32) {
     throw new Error("SESSION_SECRET must be at least 32 characters.");
   }

@@ -50,7 +50,9 @@ create table if not exists public.admin_emails (
 );
 
 insert into public.admin_emails (email)
-values ('admin@povertykillersfx.com')
+values
+  ('admin@povertykillersfx.com'),
+  ('support@povertykillersfx.com')
 on conflict (email) do nothing;
 
 alter table public.leads enable row level security;
