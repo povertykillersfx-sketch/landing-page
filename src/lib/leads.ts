@@ -1,6 +1,7 @@
 import "server-only";
-import { isLeadStatus, type LeadStatus } from "@/config/statuses";
+import { LEAD_STATUSES, isLeadStatus, type LeadStatus } from "@/config/statuses";
 import { getDb } from "@/lib/db";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { addCalendarDays, isIsoDate, periodStarts, safeTimeZone, zonedMidnightUtc } from "@/lib/time";
 import { sanitizeText, type LeadPayload } from "@/lib/validation";
 
@@ -31,8 +32,8 @@ type LeadRow = {
   whatsapp?: string;
   country: string;
   trading_experience: string;
-  previously_purchased: number;
-  previous_products: string;
+  previously_purchased: number | boolean;
+  previous_products: string | string[];
   deposit_range: string;
   deposit_rank: number;
   status: string;
@@ -73,15 +74,30 @@ const SORTS: Record<LeadSort, string> = {
     ELSE 9 END, created_at DESC`,
 };
 
+function iso(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
+
+function statusRank(status: LeadStatus) {
+  const index = LEAD_STATUSES.findIndex((item) => item.value === status);
+  return index === -1 ? 9 : index;
+}
+
 function mapLead(row: LeadRow): Lead {
   let previousProducts: string[] = [];
-  try {
-    const parsed = JSON.parse(row.previous_products) as unknown;
-    if (Array.isArray(parsed)) {
-      previousProducts = parsed.filter((item): item is string => typeof item === "string");
+  if (Array.isArray(row.previous_products)) {
+    previousProducts = row.previous_products.filter((item): item is string => typeof item === "string");
+  } else {
+    try {
+      const parsed = JSON.parse(row.previous_products) as unknown;
+      if (Array.isArray(parsed)) {
+        previousProducts = parsed.filter((item): item is string => typeof item === "string");
+      }
+    } catch {
+      previousProducts = [];
     }
-  } catch {
-    previousProducts = [];
   }
   return {
     id: row.id,
@@ -91,80 +107,157 @@ function mapLead(row: LeadRow): Lead {
     whatsapp: row.whatsapp || "",
     country: row.country,
     tradingExperience: row.trading_experience,
-    previouslyPurchased: row.previously_purchased === 1,
+    previouslyPurchased: row.previously_purchased === true || row.previously_purchased === 1,
     previousProducts,
     depositRange: row.deposit_range,
     depositRank: row.deposit_rank,
     status: isLeadStatus(row.status) ? row.status : "new",
     notes: row.notes,
-    callBookedAt: row.call_booked_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    callBookedAt: iso(row.call_booked_at),
+    createdAt: iso(row.created_at) || row.created_at,
+    updatedAt: iso(row.updated_at) || row.updated_at,
   };
 }
 
-export function createLead(input: LeadPayload, now = new Date()): Lead {
-  const db = getDb();
+function throwIfError(error: { message: string } | null, fallback: string) {
+  if (error) throw new Error(error.message || fallback);
+}
+
+export async function createLead(input: LeadPayload, now = new Date()): Promise<Lead> {
   const id = crypto.randomUUID();
   const timestamp = now.toISOString();
-  db.prepare(
-    `INSERT INTO leads (
+  if (isSupabaseConfigured()) {
+    const { data, error } = await getSupabase()
+      .from("leads")
+      .insert({
+        id,
+        full_name: input.fullName,
+        email: input.email,
+        phone: input.phone,
+        whatsapp: input.whatsapp,
+        country: input.country,
+        trading_experience: input.tradingExperience,
+        previously_purchased: input.previouslyPurchased,
+        previous_products: input.previousProducts,
+        deposit_range: input.depositRange,
+        deposit_rank: input.depositRank,
+        status: "new",
+        status_rank: statusRank("new"),
+        notes: "",
+        call_booked_at: null,
+        created_at: timestamp,
+        updated_at: timestamp,
+      })
+      .select("*")
+      .single();
+    throwIfError(error, "Lead could not be saved.");
+    return mapLead(data as LeadRow);
+  }
+  getDb()
+    .prepare(
+      `INSERT INTO leads (
       id, full_name, email, phone, whatsapp, country, trading_experience, previously_purchased,
       previous_products, deposit_range, deposit_rank, status, notes, call_booked_at, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', '', NULL, ?, ?)`,
-  ).run(
-    id,
-    input.fullName,
-    input.email,
-    input.phone,
-    input.whatsapp,
-    input.country,
-    input.tradingExperience,
-    input.previouslyPurchased ? 1 : 0,
-    JSON.stringify(input.previousProducts),
-    input.depositRange,
-    input.depositRank,
-    timestamp,
-    timestamp,
-  );
-  const lead = getLead(id);
+    )
+    .run(
+      id,
+      input.fullName,
+      input.email,
+      input.phone,
+      input.whatsapp,
+      input.country,
+      input.tradingExperience,
+      input.previouslyPurchased ? 1 : 0,
+      JSON.stringify(input.previousProducts),
+      input.depositRange,
+      input.depositRank,
+      timestamp,
+      timestamp,
+    );
+  const lead = await getLead(id);
   if (!lead) throw new Error("Lead could not be saved.");
   return lead;
 }
 
-export function getLead(id: string): Lead | null {
+export async function getLead(id: string): Promise<Lead | null> {
+  if (isSupabaseConfigured()) {
+    const { data, error } = await getSupabase().from("leads").select("*").eq("id", id).maybeSingle();
+    throwIfError(error, "Lead could not be loaded.");
+    return data ? mapLead(data as LeadRow) : null;
+  }
   const row = getDb().prepare("SELECT * FROM leads WHERE id = ?").get(id) as LeadRow | undefined;
   return row ? mapLead(row) : null;
 }
 
-export function updateLead(id: string, patch: { status?: LeadStatus; notes?: string }): Lead | null {
-  const existing = getLead(id);
+export async function updateLead(id: string, patch: { status?: LeadStatus; notes?: string }): Promise<Lead | null> {
+  const existing = await getLead(id);
   if (!existing) return null;
   const status = patch.status ?? existing.status;
   const notes = patch.notes !== undefined ? sanitizeText(patch.notes, 5000) : existing.notes;
   const callBookedAt = status === "call_booked" && !existing.callBookedAt ? new Date().toISOString() : existing.callBookedAt;
   const updatedAt = new Date().toISOString();
+  if (isSupabaseConfigured()) {
+    const { error } = await getSupabase()
+      .from("leads")
+      .update({
+        status,
+        status_rank: statusRank(status),
+        notes,
+        call_booked_at: callBookedAt,
+        updated_at: updatedAt,
+      })
+      .eq("id", id);
+    throwIfError(error, "Lead could not be updated.");
+    return getLead(id);
+  }
   getDb()
     .prepare("UPDATE leads SET status = ?, notes = ?, call_booked_at = ?, updated_at = ? WHERE id = ?")
     .run(status, notes, callBookedAt, updatedAt, id);
   return getLead(id);
 }
 
-export function markCallBooked(id: string): Lead | null {
-  const existing = getLead(id);
+export async function markCallBooked(id: string): Promise<Lead | null> {
+  const existing = await getLead(id);
   if (!existing) return null;
   const status = existing.status === "new" || existing.status === "contacted" ? "call_booked" : existing.status;
   const callBookedAt = existing.callBookedAt ?? new Date().toISOString();
   if (status === existing.status && callBookedAt === existing.callBookedAt) return existing;
+  const updatedAt = new Date().toISOString();
+  if (isSupabaseConfigured()) {
+    const { error } = await getSupabase()
+      .from("leads")
+      .update({
+        status,
+        status_rank: statusRank(status),
+        call_booked_at: callBookedAt,
+        updated_at: updatedAt,
+      })
+      .eq("id", id);
+    throwIfError(error, "Lead could not be updated.");
+    return getLead(id);
+  }
   getDb()
     .prepare("UPDATE leads SET status = ?, call_booked_at = ?, updated_at = ? WHERE id = ?")
-    .run(status, callBookedAt, new Date().toISOString(), id);
+    .run(status, callBookedAt, updatedAt, id);
   return getLead(id);
 }
 
-export function markCallBookedByEmail(email: string): Lead | null {
+export async function markCallBookedByEmail(email: string): Promise<Lead | null> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return null;
+  if (isSupabaseConfigured()) {
+    const { data, error } = await getSupabase()
+      .from("leads")
+      .select("id")
+      .eq("email", normalized)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    throwIfError(error, "Lead could not be loaded.");
+    if (!data?.id) return null;
+    return markCallBooked(data.id as string);
+  }
   const row = getDb()
     .prepare("SELECT id FROM leads WHERE email = ? ORDER BY created_at DESC LIMIT 1")
     .get(normalized) as { id: string } | undefined;
@@ -204,6 +297,22 @@ export function parseLeadQuery(input: URLSearchParams | Record<string, string | 
   };
 }
 
+function dateBounds(query: LeadQuery, timeZone: string) {
+  const zone = safeTimeZone(timeZone);
+  let fromIso = "";
+  let toIso = "";
+  if (query.from && isIsoDate(query.from)) {
+    const [year, month, day] = query.from.split("-").map(Number);
+    fromIso = zonedMidnightUtc(year, month, day, zone).toISOString();
+  }
+  if (query.to && isIsoDate(query.to)) {
+    const [year, month, day] = query.to.split("-").map(Number);
+    const next = addCalendarDays(year, month, day, 1);
+    toIso = zonedMidnightUtc(next.year, next.month, next.day, zone).toISOString();
+  }
+  return { fromIso, toIso };
+}
+
 function whereClause(query: LeadQuery, timeZone: string) {
   const where: string[] = [];
   const params: Array<string | number> = [];
@@ -230,17 +339,14 @@ function whereClause(query: LeadQuery, timeZone: string) {
     where.push("status = ?");
     params.push(query.status);
   }
-  const zone = safeTimeZone(timeZone);
-  if (query.from && isIsoDate(query.from)) {
-    const [year, month, day] = query.from.split("-").map(Number);
+  const { fromIso, toIso } = dateBounds(query, timeZone);
+  if (fromIso) {
     where.push("created_at >= ?");
-    params.push(zonedMidnightUtc(year, month, day, zone).toISOString());
+    params.push(fromIso);
   }
-  if (query.to && isIsoDate(query.to)) {
-    const [year, month, day] = query.to.split("-").map(Number);
-    const next = addCalendarDays(year, month, day, 1);
+  if (toIso) {
     where.push("created_at < ?");
-    params.push(zonedMidnightUtc(next.year, next.month, next.day, zone).toISOString());
+    params.push(toIso);
   }
   return {
     sql: where.length ? `WHERE ${where.join(" AND ")}` : "",
@@ -248,23 +354,56 @@ function whereClause(query: LeadQuery, timeZone: string) {
   };
 }
 
-export function queryLeads(query: LeadQuery, timeZone = "UTC") {
-  const db = getDb();
-  const { sql, params } = whereClause(query, timeZone);
-  const sort = SORTS[query.sort || "newest"] ?? SORTS.newest;
+function applySupabaseFilters(query: LeadQuery, timeZone: string) {
+  let request = getSupabase().from("leads").select("*", { count: "exact" });
+  if (query.q) {
+    const term = query.q.replace(/[%*,()]/g, " ").trim();
+    if (term) {
+      const pattern = `%${term}%`;
+      request = request.or(
+        `full_name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern},whatsapp.ilike.${pattern}`,
+      );
+    }
+  }
+  if (query.country) request = request.eq("country", query.country);
+  if (query.experience) request = request.eq("trading_experience", query.experience);
+  if (query.purchased === "yes") request = request.eq("previously_purchased", true);
+  if (query.purchased === "no") request = request.eq("previously_purchased", false);
+  if (query.deposit) request = request.eq("deposit_range", query.deposit);
+  if (query.status && isLeadStatus(query.status)) request = request.eq("status", query.status);
+  const { fromIso, toIso } = dateBounds(query, timeZone);
+  if (fromIso) request = request.gte("created_at", fromIso);
+  if (toIso) request = request.lt("created_at", toIso);
+  const sort = query.sort || "newest";
+  if (sort === "oldest") request = request.order("created_at", { ascending: true });
+  else if (sort === "deposit") request = request.order("deposit_rank", { ascending: false }).order("created_at", { ascending: false });
+  else if (sort === "status") request = request.order("status_rank", { ascending: true }).order("created_at", { ascending: false });
+  else request = request.order("created_at", { ascending: false });
+  return request;
+}
+
+export async function queryLeads(query: LeadQuery, timeZone = "UTC") {
   const pageSize = Math.min(Math.max(query.pageSize || 20, 1), 1000);
   const page = Math.max(query.page || 1, 1);
   const offset = (page - 1) * pageSize;
+  if (isSupabaseConfigured()) {
+    const { data, error, count } = await applySupabaseFilters(query, timeZone).range(offset, offset + pageSize - 1);
+    throwIfError(error, "Leads could not be loaded.");
+    return { leads: (data || []).map((row) => mapLead(row as LeadRow)), total: count || 0, page, pageSize };
+  }
+  const db = getDb();
+  const { sql, params } = whereClause(query, timeZone);
+  const sort = SORTS[query.sort || "newest"] ?? SORTS.newest;
   const totalRow = db.prepare(`SELECT COUNT(*) AS count FROM leads ${sql}`).get(...params) as { count: number };
   const rows = db.prepare(`SELECT * FROM leads ${sql} ORDER BY ${sort} LIMIT ? OFFSET ?`).all(...params, pageSize, offset) as LeadRow[];
   return { leads: rows.map(mapLead), total: totalRow.count, page, pageSize };
 }
 
-export function listLeadsForExport(query: LeadQuery, timeZone = "UTC"): Lead[] {
+export async function listLeadsForExport(query: LeadQuery, timeZone = "UTC"): Promise<Lead[]> {
   const leads: Lead[] = [];
   let page = 1;
   while (page <= 50) {
-    const result = queryLeads({ ...query, page, pageSize: 1000 }, timeZone);
+    const result = await queryLeads({ ...query, page, pageSize: 1000 }, timeZone);
     leads.push(...result.leads);
     if (leads.length >= result.total || result.leads.length === 0) break;
     page += 1;
@@ -281,8 +420,33 @@ export type LeadStats = {
   uncontacted: number;
 };
 
-export function leadStats(now = new Date(), timeZone = "UTC"): LeadStats {
+export async function leadStats(now = new Date(), timeZone = "UTC"): Promise<LeadStats> {
   const starts = periodStarts(now, timeZone);
+  if (isSupabaseConfigured()) {
+    const client = getSupabase();
+    const today = starts.today.toISOString();
+    const week = starts.week.toISOString();
+    const month = starts.month.toISOString();
+    const [total, todayCount, weekCount, monthCount, booked, uncontacted] = await Promise.all([
+      client.from("leads").select("id", { count: "exact", head: true }),
+      client.from("leads").select("id", { count: "exact", head: true }).gte("created_at", today),
+      client.from("leads").select("id", { count: "exact", head: true }).gte("created_at", week),
+      client.from("leads").select("id", { count: "exact", head: true }).gte("created_at", month),
+      client.from("leads").select("id", { count: "exact", head: true }).or("call_booked_at.not.is.null,status.eq.call_booked"),
+      client.from("leads").select("id", { count: "exact", head: true }).eq("status", "new"),
+    ]);
+    for (const result of [total, todayCount, weekCount, monthCount, booked, uncontacted]) {
+      throwIfError(result.error, "Lead stats could not be loaded.");
+    }
+    return {
+      total: total.count || 0,
+      today: todayCount.count || 0,
+      week: weekCount.count || 0,
+      month: monthCount.count || 0,
+      callsBooked: booked.count || 0,
+      uncontacted: uncontacted.count || 0,
+    };
+  }
   const row = getDb()
     .prepare(
       `SELECT
@@ -312,7 +476,18 @@ export function leadStats(now = new Date(), timeZone = "UTC"): LeadStats {
   };
 }
 
-export function listLeadFacets() {
+export async function listLeadFacets() {
+  if (isSupabaseConfigured()) {
+    const { data, error } = await getSupabase().from("leads").select("country, trading_experience");
+    throwIfError(error, "Lead filters could not be loaded.");
+    const countries = [
+      ...new Set((data || []).map((row) => String(row.country || "")).filter(Boolean)),
+    ].sort((a, b) => a.localeCompare(b));
+    const experiences = [
+      ...new Set((data || []).map((row) => String(row.trading_experience || "")).filter(Boolean)),
+    ].sort((a, b) => a.localeCompare(b));
+    return { countries, experiences };
+  }
   const db = getDb();
   const countries = db.prepare("SELECT DISTINCT country FROM leads WHERE country != '' ORDER BY country COLLATE NOCASE").all() as {
     country: string;

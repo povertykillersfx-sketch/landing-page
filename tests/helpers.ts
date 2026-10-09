@@ -3,10 +3,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { resetDb } from "@/lib/db";
 import { resetAdminAuthCache } from "@/lib/admin-auth";
+import { resetSupabase } from "@/lib/supabase";
 
 export function useTestDb() {
   const dir = mkdtempSync(path.join(tmpdir(), "pkfx-"));
   process.env.DATABASE_PATH = path.join(dir, "test.sqlite");
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  resetSupabase();
   resetDb();
   return process.env.DATABASE_PATH;
 }

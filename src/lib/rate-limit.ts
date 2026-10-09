@@ -1,7 +1,17 @@
 import "server-only";
 import { getDb } from "@/lib/db";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
-export function consumeRateLimit(key: string, limit: number, windowMs: number): boolean {
+export async function consumeRateLimit(key: string, limit: number, windowMs: number): Promise<boolean> {
+  if (isSupabaseConfigured()) {
+    const { data, error } = await getSupabase().rpc("consume_rate_limit", {
+      p_key: key.slice(0, 120),
+      p_limit: limit,
+      p_window_ms: windowMs,
+    });
+    if (error) throw new Error(error.message);
+    return data === true;
+  }
   const db = getDb();
   const now = Date.now();
   const run = db.transaction(() => {

@@ -40,9 +40,9 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const query = parseLeadQuery(params);
   const timeZone = safeTimeZone(getPublicConfig().businessTimezone);
-  const stats = leadStats(new Date(), timeZone);
-  const result = queryLeads(query, timeZone);
-  const facets = listLeadFacets();
+  const stats = await leadStats(new Date(), timeZone);
+  const result = await queryLeads(query, timeZone);
+  const facets = await listLeadFacets();
   const experiences = [...new Set([...experienceOptions, ...facets.experiences])];
   const active = leadFiltersActive(query);
   const exportHref = `/api/admin/export${queryString(query) ? `?${queryString(query)}` : ""}`;

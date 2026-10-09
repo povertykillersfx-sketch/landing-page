@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     const ip = getClientIp(request);
     const emailKey = createHash("sha256").update(email.toLowerCase()).digest("hex").slice(0, 12);
     const allowed =
-      consumeRateLimit(`login:${ip}`, 20, 15 * 60 * 1000) &&
-      consumeRateLimit(`login:${ip}:${emailKey}`, 8, 15 * 60 * 1000);
+      (await consumeRateLimit(`login:${ip}`, 20, 15 * 60 * 1000)) &&
+      (await consumeRateLimit(`login:${ip}:${emailKey}`, 8, 15 * 60 * 1000));
     if (!allowed) {
       return NextResponse.json({ ok: false, error: "Too many attempts. Try again later." }, { status: 429 });
     }

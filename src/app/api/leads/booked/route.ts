@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const token = typeof body === "object" && body && "token" in body && typeof body.token === "string" ? body.token : "";
     const booking = token ? await verifyBookingToken(token) : null;
     if (!booking) return NextResponse.json({ ok: false }, { status: 401 });
-    const lead = markCallBooked(booking.leadId);
+    const lead = await markCallBooked(booking.leadId);
     if (!lead) return NextResponse.json({ ok: false }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch (error) {

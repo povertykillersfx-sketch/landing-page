@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const query = parseLeadQuery(url.searchParams);
   const timeZone = safeTimeZone(getPublicConfig().businessTimezone);
-  const csv = leadsToCsv(listLeadsForExport(query, timeZone));
+  const csv = leadsToCsv(await listLeadsForExport(query, timeZone));
   const date = new Date().toISOString().slice(0, 10);
   return new NextResponse(csv, {
     headers: {

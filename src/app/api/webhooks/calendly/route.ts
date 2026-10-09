@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   }
   const email = calendlyInviteeEmail(body);
   if (email) {
-    const lead = markCallBookedByEmail(email);
+    const lead = await markCallBookedByEmail(email);
     if (!lead) console.error("Calendly invitee did not match a lead.");
   }
   return NextResponse.json({ ok: true });

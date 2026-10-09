@@ -34,7 +34,7 @@ npm run build
 npm start
 ```
 
-Run this as a Node server with a persistent disk. The database is a SQLite file, so it is not a fit for a stateless serverless host.
+With `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set, leads are stored in Supabase and the app can run on a serverless host. Without those variables it falls back to a local SQLite file, which needs a persistent disk.
 
 ## Configuration
 
@@ -42,6 +42,7 @@ Edit [`src/config/site.ts`](src/config/site.ts). Environment variables override 
 
 | What | Config field | Environment variable |
 | --- | --- | --- |
+| Supabase project | — | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
 | Calendly link | `calendlyUrl` / `CALENDLY_URL` | `CALENDLY_URL` |
 | Telegram channel | `telegramUrl` | `TELEGRAM_URL` |
 | Walkthrough video | `vslVideoUrl` | `VSL_VIDEO_URL` |
@@ -61,6 +62,15 @@ Other editable content:
 - [`src/config/metrics.ts`](src/config/metrics.ts) — social-proof numbers. Leave a value empty until you want it published. Empty values are not shown as fake numbers.
 - [`src/config/form-options.ts`](src/config/form-options.ts) — experience, previous products, and deposit ranges.
 - [`src/config/content.ts`](src/config/content.ts) — headlines, call-to-action text, and the disclaimer.
+
+## Supabase
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
+3. Copy **Project URL** and the **service_role** key from **Project Settings → API**.
+4. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (and in production).
+
+The service role key stays on the server. Form posts still go through `/api/leads`; the browser never talks to Supabase directly. Row Level Security is on, with no public policies.
 
 ## Admin
 
@@ -90,7 +100,7 @@ Events recorded in the database, and forwarded to Google Analytics or Meta when 
 ## Security
 
 - Admin pages and the CSV export require a signed httpOnly session cookie. Hiding `/admin` is not the access control.
-- Lead writes are validated on the server, parameterized in SQLite, and rate limited.
+- Lead writes are validated on the server, stored in Supabase (or parameterized SQLite as a fallback), and rate limited.
 - Browser mutations check the request origin.
 - Secrets stay in environment variables and are not shipped to the browser.
 

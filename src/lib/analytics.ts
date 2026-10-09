@@ -1,5 +1,6 @@
 import "server-only";
 import { getDb } from "@/lib/db";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const ALLOWED_EVENTS = new Set([
   "landing_page_view",
@@ -10,7 +11,7 @@ const ALLOWED_EVENTS = new Set([
   "booking_completed",
 ]);
 
-export function recordAnalyticsEvent(event: string, path: string, metadata: unknown): boolean {
+export async function recordAnalyticsEvent(event: string, path: string, metadata: unknown): Promise<boolean> {
   if (!ALLOWED_EVENTS.has(event)) return false;
   const clean: Record<string, string> = {};
   if (metadata && typeof metadata === "object") {
@@ -21,13 +22,30 @@ export function recordAnalyticsEvent(event: string, path: string, metadata: unkn
     }
   }
   const safePath = (path || "").slice(0, 120).replace(/[^\w\-./]/g, "");
+  const createdAt = new Date().toISOString();
+  const id = crypto.randomUUID();
+  if (isSupabaseConfigured()) {
+    const { error } = await getSupabase().from("analytics_events").insert({
+      id,
+      event_name: event,
+      path: safePath,
+      metadata: clean,
+      created_at: createdAt,
+    });
+    if (error) throw new Error(error.message);
+    if (Math.random() < 0.01) {
+      const cutoff = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
+      await getSupabase().from("analytics_events").delete().lt("created_at", cutoff);
+    }
+    return true;
+  }
   const db = getDb();
   db.prepare("INSERT INTO analytics_events (id, event_name, path, metadata, created_at) VALUES (?, ?, ?, ?, ?)").run(
-    crypto.randomUUID(),
+    id,
     event,
     safePath,
     JSON.stringify(clean),
-    new Date().toISOString(),
+    createdAt,
   );
   if (Math.random() < 0.01) {
     const cutoff = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       throw new RequestError("Unable to submit.", 400);
     }
     const ip = getClientIp(request);
-    if (!consumeRateLimit(`lead:${ip}`, 5, 60 * 60 * 1000)) {
+    if (!(await consumeRateLimit(`lead:${ip}`, 5, 60 * 60 * 1000))) {
       return NextResponse.json(
         { ok: false, errors: { form: "Too many submissions. Please try again later." } },
         { status: 429 },
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
-    const lead = createLead(parsed.value);
+    const lead = await createLead(parsed.value);
     const token = await signBookingToken({ leadId: lead.id, name: lead.fullName, email: lead.email });
     return NextResponse.json({ ok: true, redirectTo: `/book-call?token=${encodeURIComponent(token)}` });
   } catch (error) {
