@@ -15,7 +15,7 @@ export const CALENDLY_URL = "https://calendly.com/povertykillersfx/pkfx-ai-marke
 
 export const PKFX_CONFIG = {
   calendlyUrl: CALENDLY_URL,
-  vslVideoUrl: "https://vimeo.com/1201786453",
+  vslVideoUrl: "https://vimeo.com/1234742435",
   logoUrl: "https://i.ibb.co/Mx3hvS9m/PK-FX-Real-PNG-2.png",
   instagramUrl: "YOUR_INSTAGRAM_URL",
   telegramUrl: "https://t.me/pkfxtradingcommunity",
