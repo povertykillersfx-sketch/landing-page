@@ -50,6 +50,18 @@ export function parseVideoUrl(value: string | undefined | null): VideoSource {
   return { type: "file", url: value.trim() };
 }
 
+/** Embed URL that starts playback on load. Browsers only allow this when muted. */
+export function videoPlayerSrc(source: VideoSource): string | null {
+  if (source.type === "youtube") {
+    return `https://www.youtube-nocookie.com/embed/${source.id}?autoplay=1&mute=1&rel=0&playsinline=1`;
+  }
+  if (source.type === "vimeo") {
+    return `https://player.vimeo.com/video/${source.id}?autoplay=1&muted=1&loop=1&playsinline=1&autopause=0&title=0&byline=0&portrait=0`;
+  }
+  if (source.type === "file") return source.url;
+  return null;
+}
+
 export function safeGaId(id: string | undefined): string {
   const value = id?.trim() || "";
   return /^G-[A-Z0-9]+$/.test(value) || /^UA-\d{4,}-\d+$/.test(value) ? value : "";

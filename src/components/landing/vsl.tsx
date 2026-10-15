@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { HERO } from "@/config/content";
-import { parseVideoUrl } from "@/lib/urls";
+import { parseVideoUrl, videoPlayerSrc } from "@/lib/urls";
 
 export function VslPlayer({ videoUrl }: { videoUrl: string }) {
   const source = parseVideoUrl(videoUrl);
+  const embedSrc = videoPlayerSrc(source);
   const [playing, setPlaying] = useState(source.type !== "none");
   const ready = source.type !== "none";
   return (
@@ -24,23 +25,24 @@ export function VslPlayer({ videoUrl }: { videoUrl: string }) {
         </span>
       </div>
       <div className="lp-video-stage">
-        {source.type === "youtube" && playing ? (
+        {source.type === "youtube" && playing && embedSrc ? (
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${source.id}?autoplay=0&rel=0`}
+            src={embedSrc}
             title="PKFX walkthrough"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         ) : null}
-        {source.type === "vimeo" && playing ? (
+        {source.type === "vimeo" && playing && embedSrc ? (
           <iframe
-            src={`https://player.vimeo.com/video/${source.id}?title=0&byline=0&portrait=0`}
+            src={embedSrc}
             title="PKFX walkthrough"
-            allow="autoplay; fullscreen; picture-in-picture"
+            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
         ) : null}
-        {source.type === "file" && playing ? <video src={source.url} controls playsInline /> : null}
+        {source.type === "file" && playing ? <video src={source.url} autoPlay muted playsInline controls /> : null}
         {!playing ? (
           <button
             type="button"
