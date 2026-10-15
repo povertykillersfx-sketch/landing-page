@@ -168,7 +168,7 @@ export async function createLead(input: LeadPayload, now = new Date()): Promise<
     };
   }
   if (isServerlessHost()) {
-    throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY in Netlify, then redeploy.");
+    throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel, then redeploy.");
   }
   getDb()
     .prepare(

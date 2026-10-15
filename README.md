@@ -36,30 +36,29 @@ npm start
 
 With `SUPABASE_URL` and `SUPABASE_ANON_KEY` set, leads are stored in Supabase and the app can run on a serverless host. Without those variables it falls back to a local SQLite file, which needs a persistent disk.
 
-## Netlify
+## Vercel
 
-This app is at the **repository root**. `package.json`, `package-lock.json`, and `next.config.ts` are not inside a subfolder. In Netlify:
+This app is at the **repository root**. Import [the GitHub repo](https://github.com/povertykillersfx-sketch/landing-page) in Vercel:
 
-1. Leave **Base directory** blank.
-2. Build command: `npm run build` (from `netlify.toml`; do not use a bare `next build`).
-3. Publish directory: `.next`
-4. Deploy the branch that contains this app. `main` currently only has a README, so production must use this branch until the pull request is merged.
-5. Set these environment variables (Site configuration → Environment variables), then redeploy:
+1. Framework Preset: **Next.js**
+2. Root Directory: leave blank
+3. Production Branch: `main`
+4. Add the environment variables below for **Production** and **Preview**, then deploy
 
 | Variable | Purpose |
 | --- | --- |
-| `SITE_URL` | Public https origin, e.g. `https://your-site.netlify.app` |
-| `SUPABASE_URL` | `https://YOUR-PROJECT.supabase.co` |
+| `SITE_URL` | Public https origin, e.g. `https://your-project.vercel.app` |
+| `SUPABASE_URL` | Existing project `https://unleqapvkqezmzdbhank.supabase.co` |
 | `SUPABASE_ANON_KEY` | Anon / publishable key (not the service role secret) |
-| `ADMIN_EMAIL` | Admin login email |
-| `ADMIN_PASSWORD` | Admin login password (12+ characters) |
+| `ADMIN_EMAIL` | Admin login email (`support@povertykillersfx.com`) |
+| `ADMIN_PASSWORD` | Same password as that Supabase Auth user |
 | `SESSION_SECRET` | Random string, at least 32 characters |
 
-Do not put secrets in git. After the first deploy, point `SITE_URL` at your real domain.
+Do not put secrets in git. After the first deploy, set `SITE_URL` to the `*.vercel.app` URL (or your custom domain) and redeploy.
 
-The reserve form also needs `SUPABASE_URL` and `SUPABASE_ANON_KEY` on Netlify. Admin login can succeed without them; form submit cannot. After adding variables, trigger a new deploy.
+The reserve form needs `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Admin login also needs `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `SESSION_SECRET`.
 
-`ADMIN_EMAIL` must match a confirmed Supabase Auth user with `ADMIN_PASSWORD`, and that email must be in `public.admin_emails`. You can run [`supabase/ensure-admin.sql`](supabase/ensure-admin.sql) in the SQL editor.
+`ADMIN_EMAIL` must match a confirmed Supabase Auth user with `ADMIN_PASSWORD`, and that email must be in `public.admin_emails`. You can run [`supabase/ensure-admin.sql`](supabase/ensure-admin.sql) in the SQL editor. The current Supabase project is already created; do not make a second project.
 
 ## Configuration
 

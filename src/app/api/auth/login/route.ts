@@ -48,9 +48,9 @@ export async function POST(request: Request) {
     const raw = error instanceof Error ? error.message : "Login failed";
     console.error(raw);
     const message = /SESSION_SECRET/i.test(raw)
-      ? "Admin session is not configured. Set SESSION_SECRET in Netlify (32+ characters)."
+      ? "Admin session is not configured. Set SESSION_SECRET in Vercel (32+ characters)."
       : /SQLite|SUPABASE_ANON_KEY|schema\.sql/i.test(raw)
-        ? "Set SUPABASE_URL and SUPABASE_ANON_KEY on Netlify, then redeploy."
+        ? "Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel, then redeploy."
         : "Something went wrong. Please try again.";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }

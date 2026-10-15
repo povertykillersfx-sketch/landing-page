@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const form = /SESSION_SECRET/i.test(raw)
       ? "The application form is temporarily unavailable."
       : /SQLite|SUPABASE|schema\.sql/i.test(raw)
-        ? "Lead storage is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in Netlify, then redeploy."
+        ? "Lead storage is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel, then redeploy."
         : "Something went wrong. Please try again.";
     return NextResponse.json({ ok: false, errors: { form } }, { status: 500 });
   }
