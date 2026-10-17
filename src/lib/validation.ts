@@ -140,7 +140,7 @@ export function validateCapital(input: { depositRange?: unknown }): {
   const depositRange = asString(input.depositRange).trim();
   const match = depositOptions.find((option) => option.value === depositRange);
   if (!match) {
-    return { errors: { depositRange: "Select your typical minimum deposit." } };
+    return { errors: { depositRange: "Select whether you are ready to fund at least $100." } };
   }
   return { errors: {}, value: { depositRange: match.value, depositRank: match.rank } };
 }
