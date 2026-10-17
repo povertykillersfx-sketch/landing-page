@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCountryOptions } from "@/lib/countries";
+import { isReadyToFund } from "@/config/form-options";
 import { formatPhone, normalizePhone, sanitizeText, validateLead, whatsappHref } from "@/lib/validation";
 
 const countries = [{ name: "United States" }, { name: "United Kingdom" }];
@@ -13,7 +14,7 @@ const valid = {
   tradingExperience: "1–2 years",
   previouslyPurchased: true,
   previousProducts: ["Trading course", "<script>alert(1)</script>"],
-  depositRange: "$1000+",
+  depositRange: "Yes, I am ready to fund $1,000+",
   consent: true,
 };
 
@@ -26,6 +27,7 @@ describe("lead validation", () => {
     expect(result.value.previousProducts).toEqual(["Trading course"]);
     expect(result.value.whatsapp).toBe("+14155552671");
     expect(result.value.depositRank).toBe(4);
+    expect(result.value.depositRange).toBe("Yes, I am ready to fund $1,000+");
   });
 
   it("rejects missing and invalid fields", () => {
@@ -40,6 +42,15 @@ describe("lead validation", () => {
     expect(result.errors.previouslyPurchased).toBeTruthy();
     expect(result.errors.depositRange).toBeTruthy();
     expect(validateLead({ ...valid, depositRange: "Prefer not to say" }, countries).ok).toBe(false);
+  });
+
+  it("accepts the not-ready funding option and marks it as not ready to book", () => {
+    const result = validateLead({ ...valid, depositRange: "Not ready yet (Under $100)" }, countries);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.depositRank).toBe(1);
+    expect(isReadyToFund(result.value.depositRange)).toBe(false);
+    expect(isReadyToFund("Yes, I am ready to fund $100–$499")).toBe(true);
   });
 
   it("requires consent and allows an empty WhatsApp number", () => {

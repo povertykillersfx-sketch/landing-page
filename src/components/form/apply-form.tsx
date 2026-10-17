@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CountryOption } from "@/lib/countries";
-import { depositOptions, experienceOptions, previousProductOptions } from "@/config/form-options";
+import { FundingRequirementModal } from "@/components/form/funding-requirement-modal";
+import { DEPOSIT_LABEL, depositOptions, experienceOptions, isReadyToFund, previousProductOptions } from "@/config/form-options";
 import { track, trackOnce } from "@/lib/analytics-client";
 import { formatPhone, normalizePhone, validateAboutYou, validateCapital, validateExperience, validateLead } from "@/lib/validation";
 
@@ -57,6 +58,7 @@ export function ApplyForm({ countries }: { countries: CountryOption[] }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showFundingModal, setShowFundingModal] = useState(false);
   const phoneTouched = useRef(false);
 
   useEffect(() => {
@@ -134,6 +136,11 @@ export function ApplyForm({ countries }: { countries: CountryOption[] }) {
         return;
       }
       track("form_completed");
+      if (!isReadyToFund(checked.value.depositRange)) {
+        setShowFundingModal(true);
+        setSubmitting(false);
+        return;
+      }
       router.push(body.redirectTo);
     } catch {
       setFormError("We couldn’t submit your application. Check your connection and try again.");
@@ -143,6 +150,10 @@ export function ApplyForm({ countries }: { countries: CountryOption[] }) {
 
   const phone = normalizePhone(state.phoneCountry, state.phoneNational);
   const selectedProducts = state.previousProducts.join(", ");
+
+  if (showFundingModal) {
+    return <FundingRequirementModal />;
+  }
 
   return (
     <form className="form-card" onSubmit={onSubmit} noValidate data-testid="apply-form">
@@ -297,7 +308,7 @@ export function ApplyForm({ countries }: { countries: CountryOption[] }) {
         <div className="form-step fields">
           <h2>Your Trading Capital</h2>
           <fieldset className="field">
-            <legend>What is the minimum amount you usually deposit when trading?</legend>
+            <legend>{DEPOSIT_LABEL}</legend>
             <div className="choices">
               {depositOptions.map((option) => (
                 <label className="choice" key={option.value}>
@@ -322,7 +333,7 @@ export function ApplyForm({ countries }: { countries: CountryOption[] }) {
             <div><dt>Country</dt><dd>{state.country}</dd></div>
             <div><dt>Trading experience</dt><dd>{state.tradingExperience}</dd></div>
             <div><dt>Previous purchases</dt><dd>{state.previouslyPurchased === "yes" ? `Yes${selectedProducts ? ` — ${selectedProducts}` : ""}` : "No"}</dd></div>
-            <div><dt>Typical minimum deposit</dt><dd>{state.depositRange}</dd></div>
+            <div><dt>{DEPOSIT_LABEL}</dt><dd>{state.depositRange}</dd></div>
           </dl>
           <div className="form-actions">
             <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>Edit details</button>

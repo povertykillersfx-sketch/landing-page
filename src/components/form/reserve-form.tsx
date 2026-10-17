@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { depositOptions, experienceOptions, previousProductOptions } from "@/config/form-options";
+import { FundingRequirementModal } from "@/components/form/funding-requirement-modal";
+import { DEPOSIT_LABEL, depositOptions, experienceOptions, isReadyToFund, previousProductOptions } from "@/config/form-options";
 import { RESERVE, TERMS_URL } from "@/config/content";
 import type { CountryOption } from "@/lib/countries";
 import { track, trackOnce } from "@/lib/analytics-client";
@@ -51,6 +52,7 @@ export function ReserveForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showFundingModal, setShowFundingModal] = useState(false);
   const [remaining, setRemaining] = useState(5 * 60);
 
   useEffect(() => {
@@ -68,13 +70,13 @@ export function ReserveForm({
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose?.();
+      if (event.key === "Escape" && !showFundingModal) onClose?.();
     }
     if (onClose) {
       window.addEventListener("keydown", onKey);
       return () => window.removeEventListener("keydown", onKey);
     }
-  }, [onClose]);
+  }, [onClose, showFundingModal]);
 
   const selected = useMemo(
     () => countries.find((country) => country.name === state.country),
@@ -131,6 +133,11 @@ export function ReserveForm({
         return;
       }
       track("form_completed");
+      if (!isReadyToFund(checked.value.depositRange)) {
+        setShowFundingModal(true);
+        setSubmitting(false);
+        return;
+      }
       onClose?.();
       window.location.assign(body.redirectTo);
     } catch {
@@ -294,8 +301,8 @@ export function ReserveForm({
             </div>
           </fieldset>
         ) : null}
-        <label className="field" htmlFor="depositRange">
-          <span>Typical minimum deposit</span>
+        <label className="field reserve-span" htmlFor="depositRange">
+          <span>{DEPOSIT_LABEL}</span>
           <select
             id="depositRange"
             className="input"
@@ -341,6 +348,10 @@ export function ReserveForm({
       </button>
     </form>
   );
+
+  if (showFundingModal) {
+    return <FundingRequirementModal />;
+  }
 
   if (!onClose) {
     return <div className="reserve-page">{form}</div>;

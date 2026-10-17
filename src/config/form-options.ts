@@ -16,17 +16,23 @@ export const previousProductOptions = [
   "Other",
 ] as const;
 
+export const DEPOSIT_LABEL = "ARE YOU READY TO FUND YOUR TRADING ACCOUNT WITH AT LEAST $100 TO UNLOCK ACCESS?";
+
 /**
- * Typical minimum deposit. Change labels here if the ranges change.
- * `rank` controls "Highest deposit range" sorting. Higher ranks sort first.
+ * Funding readiness. `rank` controls "Highest deposit range" sorting.
+ * Higher ranks sort first. `ready` is false for the Telegram-only path.
  */
 export const depositOptions = [
-  { value: "Under $100", rank: 1 },
-  { value: "$100–$499", rank: 2 },
-  { value: "$500–$999", rank: 3 },
-  { value: "$1000+", rank: 4 },
+  { value: "Yes, I am ready to fund $100–$499", rank: 2, ready: true },
+  { value: "Yes, I am ready to fund $500–$1,000", rank: 3, ready: true },
+  { value: "Yes, I am ready to fund $1,000+", rank: 4, ready: true },
+  { value: "Not ready yet (Under $100)", rank: 1, ready: false },
 ] as const;
 
 export type ExperienceOption = (typeof experienceOptions)[number];
 export type PreviousProductOption = (typeof previousProductOptions)[number];
 export type DepositOption = (typeof depositOptions)[number]["value"];
+
+export function isReadyToFund(value: string) {
+  return depositOptions.some((option) => option.value === value && option.ready);
+}

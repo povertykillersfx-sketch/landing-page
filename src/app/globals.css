@@ -940,6 +940,41 @@ td a { color: var(--ice); }
 .reserve-consent input { margin-top: 0.2rem; accent-color: #a855f7; width: 1.05rem; height: 1.05rem; }
 .reserve-consent a { color: #c4b5fd; font-weight: 700; }
 .reserve-submit { width: 100%; margin: 1rem 0 0; }
+.funding-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(4, 1, 10, 0.72);
+}
+.funding-modal-card {
+  width: min(520px, 100%);
+  padding: 1.4rem 1.3rem 1.35rem;
+  border-radius: 18px;
+  border: 1px solid #2e3548;
+  background: #161922;
+  color: white;
+  text-align: left;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+.funding-modal-card h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+}
+.funding-modal-card p {
+  margin: 0 0 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+.funding-modal-btn {
+  width: 100%;
+  margin: 0.4rem 0 0;
+  text-align: center;
+}
 @media (min-width: 720px) {
   .lp-header .nav-links { display: flex; }
   .lp-menu, .lp-menu-panel { display: none; }
